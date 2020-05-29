@@ -6,12 +6,17 @@ import { ElementTracker } from "@cs125/element-tracker"
 
 import { String } from "runtypes"
 const GOOGLE_CLIENT_ID = String.check(process.env.GOOGLE_CLIENT_ID)
+const ET_SERVER = String.check(process.env.ET_SERVER)
 
 const Root = ({ element }) => {
   return (
     <GoogleLoginProvider clientConfig={{ client_id: GOOGLE_CLIENT_ID }}>
       <WithGoogleTokens>
-        {({ idToken }) => <ElementTracker tags={["h1", "h2", "h3"]}>{element}</ElementTracker>}
+        {({ idToken }) => (
+          <ElementTracker server={ET_SERVER} tags={["h1", "h2", "h3"]} googleToken={idToken}>
+            {element}
+          </ElementTracker>
+        )}
       </WithGoogleTokens>
     </GoogleLoginProvider>
   )

@@ -1,0 +1,20 @@
+version: "3"
+services:
+  element-tracker:
+    image: "cs125/element-tracker:latest"
+    depends_on:
+      - mongodb
+    ports:
+      - "8888:8888"
+    environment:
+      - "MONGODB=mongodb://mongodb/demo"
+      - "GOOGLE_CLIENT_IDS=${GOOGLE_CLIENT_ID}"
+  mongodb:
+    image: "bitnami/mongodb:4.0"
+    ports:
+      - "27017:27017"
+    volumes:
+      - "mongodb_data:/bitnami"
+volumes:
+  mongodb_data:
+    driver: local
