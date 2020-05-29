@@ -24,7 +24,7 @@ export const Stickybar: React.FC<StickybarProps> = ({ side, center, minWidth, ch
   const theme = useTheme()
   const classes = useStyles()
 
-  const top = props.top !== undefined ? props.top : theme.spacing(4)
+  const top = props.top !== undefined ? props.top : theme.spacing(8)
 
   const width = useMemo(() => `calc((100vw - ${theme.breakpoints.values[center]}px) / 2)`, [theme, center])
   const height = useMemo(() => `calc(100vh - ${top}px)`, [top])

@@ -48,5 +48,10 @@ export const theme = responsiveFontSizes(
         textDecoration: "underline",
       },
     },
+    palette: {
+      text: {
+        primary: "rgba(0, 0, 0, 0.8)",
+      },
+    },
   })
 )

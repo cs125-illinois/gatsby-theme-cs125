@@ -13,7 +13,7 @@ const Root = ({ element }) => {
     <GoogleLoginProvider clientConfig={{ client_id: GOOGLE_CLIENT_ID }}>
       <WithGoogleTokens>
         {({ idToken }) => (
-          <ElementTracker server={ET_SERVER} tags={["h1", "h2", "h3"]} googleToken={idToken}>
+          <ElementTracker server={ET_SERVER} googleToken={idToken}>
             {element}
           </ElementTracker>
         )}

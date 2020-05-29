@@ -4,27 +4,33 @@ import { useElementTracker, active } from "@cs125/element-tracker"
 import { List, ListItem, Typography } from "@material-ui/core"
 
 export const SidebarMenu: React.FC = () => {
-  const { components } = useElementTracker()
+  const { elements } = useElementTracker()
   const [activeHeader, setActiveHeader] = useState<string | undefined>(undefined)
 
   useLayoutEffect(() => {
-    if (!components || components.length === 0) {
+    if (!elements || elements.length === 0) {
       setActiveHeader(undefined)
       return
     }
-    const activeHeader = active(components.filter(c => c.tag === "h2"))
-    setActiveHeader(activeHeader && activeHeader.id)
-  }, [components])
+    const activeHeader = active(elements.filter(e => e.tagName.toLowerCase() === "h2"))
+    if (!activeHeader) {
+      setActiveHeader(undefined)
+      return
+    }
+    const id = activeHeader.getAttribute("data-et-id") || activeHeader.id
+    setActiveHeader(id)
+  }, [elements])
 
-  if (!components) {
+  if (!elements) {
     return null
   }
   return (
     <List dense>
-      {components
-        .filter(c => c.tag === "h2")
-        .map((component, i) => {
-          const headerLocation = `${window.location.href.split("#")[0]}#${component.id}`
+      {elements
+        .filter(e => e.tagName.toLowerCase() === "h2")
+        .map((element, i) => {
+          const id = element.getAttribute("data-et-id") || element.id
+          const headerLocation = `${window.location.href.split("#")[0]}#${id}`
           return (
             <ListItem
               onClick={(): void => {
@@ -35,10 +41,10 @@ export const SidebarMenu: React.FC = () => {
               <Typography
                 variant={"h4"}
                 style={{
-                  fontWeight: activeHeader && component.id && component.id === activeHeader ? 900 : "normal",
+                  fontWeight: activeHeader && id && id === activeHeader ? 900 : "normal",
                 }}
               >
-                <span onClick={(): void => setActiveHeader(component.id)}>{component.text}</span>
+                <span onClick={(): void => setActiveHeader(id)}>{element.textContent}</span>
               </Typography>
             </ListItem>
           )

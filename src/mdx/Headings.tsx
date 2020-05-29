@@ -5,6 +5,7 @@ import slugify from "slugify"
 import Children from "react-children-utilities"
 
 import { headings as muiHeadings } from "../material-ui/Typography"
+import { useTheme } from "@material-ui/core"
 
 export interface HeadingProps {
   id?: string
@@ -12,13 +13,19 @@ export interface HeadingProps {
 }
 const Heading = (tag: "h1" | "h2" | "h3" | "h4" | "h5" | "h6"): React.FC<HeadingProps> => {
   const WrappedHeading: React.FC<HeadingProps> = props => {
+    const theme = useTheme()
+
     const { children } = props
-    const id = props.id || slugify(Children.onlyText(children), { lower: true })
+    const text = Children.onlyText(children)
+    const id = props.id || slugify(text, { lower: true })
     const Heading = muiHeadings[tag]
     return (
-      <Heading id={id} {...props}>
-        {children}
-      </Heading>
+      <>
+        <div id={id} style={{ position: "relative", top: -1 * theme.spacing(8) }} />
+        <Heading data-et={true} data-et-id={id} {...props}>
+          {children}
+        </Heading>
+      </>
     )
   }
   WrappedHeading.propTypes = {

@@ -25,7 +25,7 @@ const Index: React.FC = ({ children }) => (
     </Helmet>
     <CssBaseline />
     <ThemeProvider theme={theme}>
-      <UpdateHash />
+      <UpdateHash filter={element => element.tagName.toLowerCase() === "h2"} />
       <Stickybar minWidth={128} side={"right"} center={"md"}>
         <SidebarMenu />
       </Stickybar>
