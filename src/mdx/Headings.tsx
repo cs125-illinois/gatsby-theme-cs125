@@ -6,7 +6,7 @@ import Children from "react-children-utilities"
 
 import { headings as muiHeadings } from "../material-ui/Typography"
 
-interface HeadingProps {
+export interface HeadingProps {
   id?: string
   children: React.ReactNode
 }
