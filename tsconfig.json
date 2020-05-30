@@ -10,7 +10,6 @@
     "esModuleInterop": true,
     "jsx": "react",
     "allowSyntheticDefaultImports": true,
-    "sourceMap": true,
     "skipLibCheck": true,
     "strict": true,
     "alwaysStrict": false,
@@ -20,6 +19,9 @@
     "noFallthroughCasesInSwitch": true,
     "types": ["node"],
     "typeRoots": ["node_modules/@types", "./typings.d.ts"],
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "types/graphql": ["graphql-types.ts"]
+    }
   }
 }

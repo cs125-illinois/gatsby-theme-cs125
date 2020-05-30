@@ -9,15 +9,18 @@ import AceEditor, { IAceEditorProps, ICommand, IAceOptions } from "react-ace"
 const useStyles = makeStyles(theme => ({
   "@global": {
     ".ace_gutter": {
-      background: "none!important",
+      background: "none !important",
     },
     ".ace_gutter-cell": {
       width: "100%",
       paddingLeft: "0!important",
-      paddingRight: `${theme.spacing(1)}px!important`,
+      paddingRight: `${theme.spacing(1)}px !important`,
     },
     ".ace_display_only .ace_cursor-layer": {
       display: "none",
+    },
+    ".ace_mobile-menu": {
+      display: "none !important",
     },
   },
   wrapper: {
@@ -44,13 +47,13 @@ const DISABLED_COMMANDS = [
   },
 ] as ICommand[]
 
-export interface CodeProps extends IAceEditorProps {
+export interface AceProps extends IAceEditorProps {
   clickOut?: boolean
   displayOnly?: boolean
   initialCursorPosition?: number[]
   children?: ReactNode
 }
-export const Code: React.FC<CodeProps> = ({
+export const Ace: React.FC<AceProps> = ({
   clickOut = true,
   displayOnly,
   initialCursorPosition,
@@ -133,13 +136,13 @@ export const Code: React.FC<CodeProps> = ({
     </div>
   )
 }
-Code.propTypes = {
+Ace.propTypes = {
   clickOut: PropTypes.bool,
   initialCursorPosition: PropTypes.arrayOf(PropTypes.number.isRequired),
   children: PropTypes.node,
   ...AceEditor.propTypes,
 }
-Code.defaultProps = {
+Ace.defaultProps = {
   clickOut: true,
   theme: "chrome",
   width: "100%",

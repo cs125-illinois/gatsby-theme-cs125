@@ -1,3 +1,5 @@
+import path from "path"
+
 export const plugins = [
   "gatsby-plugin-typescript",
   "gatsby-plugin-material-ui",
@@ -16,7 +18,14 @@ export const plugins = [
     resolve: "gatsby-source-filesystem",
     options: {
       name: "pages",
-      path: "src/pages",
+      path: path.join(__dirname, "src", "pages"),
+    },
+  },
+  {
+    resolve: "gatsby-source-filesystem",
+    options: {
+      name: "images",
+      path: path.join(__dirname, "src", "images"),
     },
   },
   "gatsby-plugin-mdx",
@@ -25,7 +34,7 @@ export const plugins = [
     options: {
       name: process.env.npm_package_name,
       short_name: process.env.npm_package_name,
-      icon: require.resolve("./src/images/favicon.png"),
+      icon: require.resolve("./src/images/logo.png"),
     },
   },
   {
@@ -36,4 +45,12 @@ export const plugins = [
   },
   "gatsby-plugin-react-helmet",
   "gatsby-plugin-sass",
+  "gatsby-plugin-sharp",
+  "gatsby-transformer-sharp",
+  {
+    resolve: "gatsby-plugin-graphql-codegen",
+    options: {
+      documentPaths: ["./src/**/*.{ts,tsx}"],
+    },
+  },
 ]

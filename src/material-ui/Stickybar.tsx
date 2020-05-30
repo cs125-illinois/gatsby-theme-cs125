@@ -24,15 +24,15 @@ export const StickyBar: React.FC<StickyBarProps> = ({ side, center, minWidth, ch
   const theme = useTheme()
   const classes = useStyles()
 
-  const top = props.top !== undefined ? props.top : theme.spacing(8)
+  const top = props.top !== undefined ? props.top : theme.spacing(10)
 
   const width = useMemo(() => `calc((100vw - ${theme.breakpoints.values[center]}px) / 2)`, [theme, center])
-  const height = useMemo(() => `calc(100vh - ${top}px)`, [top])
+  const maxHeight = useMemo(() => `calc(100vh - ${top}px)`, [top])
 
   const style: CSSProperties = {
     top,
     width,
-    height,
+    maxHeight,
     ...props.style,
   }
   side === "right" ? (style.right = 0) : (style.left = 0)
