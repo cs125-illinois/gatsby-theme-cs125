@@ -1,10 +1,12 @@
-import Index from "../layouts"
-export default Index
+import { Single } from "../layouts"
+export default Single
 
 import { TopBar } from "../material-ui/"
 
 import { Lead } from "../material-ui/"
 import { LoremIpsum } from "../lorem-ipsum/"
+
+import { Code } from "../react-ace"
 
 <TopBar />
 
@@ -16,9 +18,7 @@ This is so great.
 
 ## First
 
-```java
-System.out.println("Here");
-```
+<Code value="npm i @cs125/react-google-login" />
 
 <LoremIpsum p={6} />
 

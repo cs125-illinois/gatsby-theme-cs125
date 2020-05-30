@@ -8,12 +8,12 @@ import { Helmet } from "react-helmet"
 import CssBaseline from "@material-ui/core/CssBaseline"
 import { MDXProvider } from "@mdx-js/react"
 import { components } from "../mdx"
-import { StickyBar } from "../material-ui/"
-import { MainContainer } from "../material-ui/"
+import { StickyBar } from "../material-ui"
+import { MainContainer } from "../material-ui"
 import { SidebarMenu } from "../element-tracker"
 import { UpdateHash } from "@cs125/element-tracker"
 
-const Index: React.FC = ({ children }) => (
+export const Single: React.FC = ({ children }) => (
   <>
     <Helmet>
       <meta charSet="utf-8" />
@@ -35,7 +35,6 @@ const Index: React.FC = ({ children }) => (
     </ThemeProvider>
   </>
 )
-Index.propTypes = {
+Single.propTypes = {
   children: PropTypes.node.isRequired,
 }
-export default Index
