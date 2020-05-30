@@ -53,7 +53,7 @@ export interface CodeProps extends IAceEditorProps {
 export const Code: React.FC<CodeProps> = ({
   clickOut = true,
   displayOnly,
-  initialCursorPosition = [0, 0],
+  initialCursorPosition,
   children,
   ...props
 }) => {
@@ -88,7 +88,7 @@ export const Code: React.FC<CodeProps> = ({
             position: "absolute",
             top: 0,
             left: 0,
-            width: gutterWidth + theme.spacing(1),
+            width: gutterWidth + theme.spacing(1) + 2,
             bottom: 0,
             backgroundColor: "rgba(0,0,0,0.05)",
           }}
@@ -111,7 +111,7 @@ export const Code: React.FC<CodeProps> = ({
               return displayOnly ? "" : session.$firstLineNumber + row
             },
           }
-          if (!displayOnly) {
+          if (!displayOnly && initialCursorPosition) {
             editor.moveCursorTo(initialCursorPosition[0], initialCursorPosition[1])
           }
         }}
@@ -141,7 +141,6 @@ Code.propTypes = {
 }
 Code.defaultProps = {
   clickOut: true,
-  initialCursorPosition: [0, 0],
   theme: "chrome",
   width: "100%",
   showPrintMargin: false,
