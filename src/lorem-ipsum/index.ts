@@ -1,0 +1,1 @@
+export { LoremIpsum } from "./LoremIpsum"

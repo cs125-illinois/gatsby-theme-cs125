@@ -2,7 +2,7 @@ import React, { ReactNode } from "react"
 import PropTypes from "prop-types"
 
 import { AppBar, Typography, Container, makeStyles } from "@material-ui/core"
-import { LoginButton } from "src/react-google-login"
+import { LoginButton } from "../react-google-login"
 
 const useStyles = makeStyles(theme => ({
   top: {

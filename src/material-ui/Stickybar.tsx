@@ -12,7 +12,7 @@ const useStyles = makeStyles(() => ({
 }))
 
 type Side = "right" | "left"
-export interface StickybarProps {
+export interface StickyBarProps {
   side: Side
   top?: number
   center: Breakpoint
@@ -20,7 +20,7 @@ export interface StickybarProps {
   style?: CSSProperties
   children: ReactNode
 }
-export const Stickybar: React.FC<StickybarProps> = ({ side, center, minWidth, children, ...props }) => {
+export const StickyBar: React.FC<StickyBarProps> = ({ side, center, minWidth, children, ...props }) => {
   const theme = useTheme()
   const classes = useStyles()
 
@@ -42,7 +42,7 @@ export const Stickybar: React.FC<StickybarProps> = ({ side, center, minWidth, ch
     </MinWidth>
   )
 }
-Stickybar.propTypes = {
+StickyBar.propTypes = {
   side: PropTypes.oneOf<Side>(["right", "left"]).isRequired,
   top: PropTypes.number,
   center: PropTypes.oneOf<Breakpoint>(["xs", "sm", "md", "lg", "xl"]).isRequired,
