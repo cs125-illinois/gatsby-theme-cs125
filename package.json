@@ -19,7 +19,7 @@
     "eslint": "eslint --fix src/ --max-warnings=0 --ext .js,.ts,.tsx",
     "ncu": "ncu",
     "postpublish": "mv gatsby-config.js.bac gatsby-config.js && git clean -df",
-    "prepublishOnly": "mv gatsby-config.js gatsby-config.js.bac && cp dist/gatsby-config.* . && cp -R dist/src/* .",
+    "prepublishOnly": "npm run build && mv gatsby-config.js gatsby-config.js.bac && cp dist/gatsby-config.* . && cp -R dist/src/* .",
     "serve": "gatsby serve -p 1234 -H 0.0.0.0",
     "start": "concurrently -n example,backend --handle-input \"nodemon\" \"npm run backend\"",
     "tsc": "tsc --noEmit",
