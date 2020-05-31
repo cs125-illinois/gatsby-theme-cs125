@@ -2,14 +2,35 @@ import React, { useState, useLayoutEffect } from "react"
 import PropTypes from "prop-types"
 
 import { useElementTracker, active } from "@cs125/element-tracker"
-import { List, ListItem, Typography } from "@material-ui/core"
+import { List, ListItem, Typography, useTheme, makeStyles } from "@material-ui/core"
+
+const useStyles = makeStyles(theme => ({
+  item: {
+    paddingLeft: theme.spacing(1),
+    "&:hover": {
+      cursor: "pointer",
+      borderLeft: `4px solid ${theme.palette.action.disabled}`,
+    },
+  },
+  active: {
+    fontWeight: 900,
+    borderLeft: `4px solid ${theme.palette.action.selected}`,
+  },
+  inactive: {
+    fontWeight: "normal",
+    borderLeft: "4px solid transparent",
+  },
+}))
 
 export interface SidebarMenuProps {
   top?: number
 }
 export const SidebarMenu: React.FC<SidebarMenuProps> = ({ top = 0 }) => {
+  const theme = useTheme()
   const { elements } = useElementTracker()
   const [activeHeader, setActiveHeader] = useState<string | undefined>(undefined)
+
+  const classes = useStyles()
 
   useLayoutEffect(() => {
     if (!elements || elements.length === 0) {
@@ -38,6 +59,7 @@ export const SidebarMenu: React.FC<SidebarMenuProps> = ({ top = 0 }) => {
         .map((element, i) => {
           const id = element.getAttribute("data-et-id") || element.id
           const headerLocation = `${window.location.href.split("#")[0]}#${id}`
+          const active = activeHeader && id && id === activeHeader
           return (
             <ListItem
               onClick={(): void => {
@@ -45,12 +67,7 @@ export const SidebarMenu: React.FC<SidebarMenuProps> = ({ top = 0 }) => {
               }}
               key={i}
             >
-              <Typography
-                variant={"h4"}
-                style={{
-                  fontWeight: activeHeader && id && id === activeHeader ? 900 : "normal",
-                }}
-              >
+              <Typography variant={"h4"} className={`${classes.item} ${active ? classes.active : classes.inactive}`}>
                 <span onClick={(): void => setActiveHeader(id)}>{element.textContent}</span>
               </Typography>
             </ListItem>
