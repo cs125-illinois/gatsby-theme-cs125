@@ -1,7 +1,8 @@
 import React from "react"
 import PropTypes from "prop-types"
 
-import { useStaticQuery, graphql } from "gatsby"
+import { useStaticQuery } from "gatsby"
+import { graphql } from "gatsby"
 import { SingleQuery } from "types/graphql"
 
 import { Helmet } from "react-helmet"
