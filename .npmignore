@@ -2,3 +2,5 @@
 /public
 /.cache
 .env.*
+*.ts
+*.tsx
