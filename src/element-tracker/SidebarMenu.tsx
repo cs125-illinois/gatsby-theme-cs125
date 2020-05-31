@@ -1,9 +1,13 @@
 import React, { useState, useLayoutEffect } from "react"
+import PropTypes from "prop-types"
 
 import { useElementTracker, active } from "@cs125/element-tracker"
-import { List, ListItem } from "@material-ui/core"
+import { List, ListItem, Typography } from "@material-ui/core"
 
-export const SidebarMenu: React.FC = () => {
+export interface SidebarMenuProps {
+  top?: number
+}
+export const SidebarMenu: React.FC<SidebarMenuProps> = ({ top = 0 }) => {
   const { elements } = useElementTracker()
   const [activeHeader, setActiveHeader] = useState<string | undefined>(undefined)
 
@@ -14,7 +18,7 @@ export const SidebarMenu: React.FC = () => {
     }
     const activeHeader = active(
       elements.filter(e => e.tagName.toLowerCase() === "h2"),
-      64
+      top
     )
     if (!activeHeader) {
       setActiveHeader(undefined)
@@ -22,7 +26,7 @@ export const SidebarMenu: React.FC = () => {
     }
     const id = activeHeader.getAttribute("data-et-id") || activeHeader.id
     setActiveHeader(id)
-  }, [elements])
+  }, [top, elements])
 
   if (!elements) {
     return null
@@ -41,16 +45,20 @@ export const SidebarMenu: React.FC = () => {
               }}
               key={i}
             >
-              <h3
+              <Typography
+                variant={"h4"}
                 style={{
                   fontWeight: activeHeader && id && id === activeHeader ? 900 : "normal",
                 }}
               >
                 <span onClick={(): void => setActiveHeader(id)}>{element.textContent}</span>
-              </h3>
+              </Typography>
             </ListItem>
           )
         })}
     </List>
   )
+}
+SidebarMenu.propTypes = {
+  top: PropTypes.number,
 }

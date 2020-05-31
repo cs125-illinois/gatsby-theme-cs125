@@ -6,6 +6,7 @@ import Children from "react-children-utilities"
 
 import { useTheme } from "@material-ui/core"
 import { topBarHeight } from "../material-ui/TopBar"
+import { headings as MuiHeadings } from "../material-ui/Typography"
 
 export interface HeadingProps {
   id?: string
@@ -17,11 +18,13 @@ const Heading = (tag: "h1" | "h2" | "h3" | "h4" | "h5" | "h6"): React.FC<Heading
 
     const text = Children.onlyText(children)
     id = id || slugify(text, { lower: true })
-    const Heading = React.createElement(tag, { ["data-et"]: true, ["data-et-id"]: id, ...props }, children)
+    const Heading = MuiHeadings[tag]
     return (
       <>
         <div id={id} style={{ position: "relative", top: -1 * topBarHeight(theme) - theme.spacing(2) }} />
-        {Heading}
+        <Heading data-et={true} data-et-id={id} {...props}>
+          {children}
+        </Heading>
       </>
     )
   }

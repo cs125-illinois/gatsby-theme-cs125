@@ -1,6 +1,7 @@
 import React, { ReactNode } from "react"
+import PropTypes from "prop-types"
 
-import { AppBar, Container, makeStyles, Theme } from "@material-ui/core"
+import { AppBar, Container, makeStyles, Theme, Typography } from "@material-ui/core"
 import { LoginButton } from "../react-google-login"
 import { useStaticQuery, graphql } from "gatsby"
 
@@ -29,9 +30,9 @@ const useStyles = makeStyles(theme => ({
 }))
 
 interface TopBarProps {
-  title?: ReactNode
+  title: ReactNode
 }
-export const TopBar: React.FC<TopBarProps> = () => {
+export const TopBar: React.FC<TopBarProps> = ({ title }) => {
   const classes = useStyles()
 
   const data: LogoQuery = useStaticQuery(graphql`
@@ -54,11 +55,16 @@ export const TopBar: React.FC<TopBarProps> = () => {
     <AppBar className={classes.top}>
       <Container maxWidth={"md"} className={classes.container}>
         <Image fadeIn={false} fixed={data.file?.childImageSharp?.fixed as FixedObject} className={classes.image} />
-        <div style={{ flex: 1 }} />
+        <Typography variant={"h3"} component={"div"} noWrap style={{ flex: 1 }}>
+          <code>{title}</code>
+        </Typography>
         <div style={{ flexShrink: 0 }}>
           <LoginButton style={{ flexShrink: 0 }} />
         </div>
       </Container>
     </AppBar>
   )
+}
+TopBar.propTypes = {
+  title: PropTypes.node.isRequired,
 }

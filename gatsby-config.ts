@@ -60,10 +60,4 @@ export const plugins = [
       documentPaths: ["./src/**/*.{ts,tsx}"],
     },
   },
-  {
-    resolve: "gatsby-plugin-typography",
-    options: {
-      pathToConfigModule: path.join(__dirname, "src", "typography", "typography"),
-    },
-  },
 ]
