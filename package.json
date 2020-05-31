@@ -8,7 +8,6 @@
     "backend": "npm run backend:up || npm run backend:down",
     "backend:down": "docker-compose --env-file .env.development -p $npm_package_name down",
     "backend:up": "docker-compose --env-file .env.development -p $npm_package_name up",
-    "build": "rm -rf dist && tsc && rm -rf dist/src/gatsby-node && cp src/material-ui/global.scss dist/src/material-ui/",
     "build:example": "gatsby build",
     "check": "npm run depcheck && npm run eslint && npm run tsc && npm run prettier",
     "clean": "gatsby clean",
