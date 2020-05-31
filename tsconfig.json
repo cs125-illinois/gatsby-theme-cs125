@@ -1,5 +1,5 @@
 {
-  "include": ["gatsby-config.ts", "src/**/*.tsx", "src/**/*.ts"],
+  "include": ["*.ts", "src/**/*.tsx", "src/**/*.ts"],
   "compilerOptions": {
     "sourceMap": true,
     "declaration": true,
