@@ -2,7 +2,7 @@ import React, { useState, useLayoutEffect } from "react"
 import PropTypes from "prop-types"
 
 import { useElementTracker, active } from "@cs125/element-tracker"
-import { List, ListItem, Typography, useTheme, makeStyles } from "@material-ui/core"
+import { List, ListItem, Typography, makeStyles } from "@material-ui/core"
 
 const useStyles = makeStyles(theme => ({
   item: {
@@ -26,7 +26,6 @@ export interface SidebarMenuProps {
   top?: number
 }
 export const SidebarMenu: React.FC<SidebarMenuProps> = ({ top = 0 }) => {
-  const theme = useTheme()
   const { elements } = useElementTracker()
   const [activeHeader, setActiveHeader] = useState<string | undefined>(undefined)
 

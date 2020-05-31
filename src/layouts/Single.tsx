@@ -14,13 +14,13 @@ import { MainContainer } from "../material-ui"
 import { components } from "../mdx"
 
 import { String } from "runtypes"
-const PACKAGE_NAME = String.check(process.env.npm_package_name)
+const NAME = String.check(process.env.NAME || process.env.npm_package_name)
 
 export const Single: React.FC = ({ children }) => (
   <>
     <Helmet>
       <meta charSet="utf-8" />
-      <title>{process.env.npm_package_name}</title>
+      <title>{NAME}</title>
       <meta name="description" content={process.env.npm_package_description} />
       <link rel="preconnect" href="https://accounts.google.com" crossOrigin="use-credentials" />
       <link rel="preconnect" href="https://ssl.gstatic.com" crossOrigin="use-credentials" />
@@ -29,7 +29,7 @@ export const Single: React.FC = ({ children }) => (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <UpdateHash filter={element => element.tagName.toLowerCase() === "h2"} />
-      <TopBar title={<code>{PACKAGE_NAME}</code>} />
+      <TopBar title={<code>{NAME}</code>} />
       <StickyBar minWidth={128} side={"right"} center={"md"}>
         <SidebarMenu />
       </StickyBar>
