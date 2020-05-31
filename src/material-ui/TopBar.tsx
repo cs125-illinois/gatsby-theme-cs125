@@ -3,10 +3,7 @@ import PropTypes from "prop-types"
 
 import { AppBar, Container, makeStyles, Theme, Typography } from "@material-ui/core"
 import { LoginButton } from "../react-google-login"
-import { graphql } from "gatsby"
-import { useStaticQuery } from "gatsby"
 
-import { LogoQuery } from "types/graphql"
 import Image, { FixedObject } from "gatsby-image"
 
 export const topBarHeight = (theme: Theme): number => theme.spacing(8)
@@ -32,30 +29,15 @@ const useStyles = makeStyles(theme => ({
 
 interface TopBarProps {
   title: ReactNode
+  logo?: FixedObject
 }
-export const TopBar: React.FC<TopBarProps> = ({ title }) => {
+export const TopBar: React.FC<TopBarProps> = ({ title, logo }) => {
   const classes = useStyles()
-
-  const data: LogoQuery = useStaticQuery(graphql`
-    query Logo {
-      file(relativePath: { eq: "logo.png" }, sourceInstanceName: { eq: "images" }) {
-        childImageSharp {
-          fixed(width: 48, height: 48) {
-            base64
-            width
-            height
-            src
-            srcSet
-          }
-        }
-      }
-    }
-  `)
 
   return (
     <AppBar className={classes.top}>
       <Container maxWidth={"md"} className={classes.container}>
-        <Image fadeIn={false} fixed={data.file?.childImageSharp?.fixed as FixedObject} className={classes.image} />
+        {logo && <Image fadeIn={false} fixed={logo} className={classes.image} />}
         <Typography variant={"h3"} component={"div"} noWrap style={{ flex: 1 }}>
           <code>{title}</code>
         </Typography>
@@ -68,4 +50,5 @@ export const TopBar: React.FC<TopBarProps> = ({ title }) => {
 }
 TopBar.propTypes = {
   title: PropTypes.node.isRequired,
+  logo: PropTypes.any,
 }

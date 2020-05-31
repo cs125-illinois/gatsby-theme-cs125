@@ -1,5 +1,10 @@
 import path from "path"
 
+import { String } from "runtypes"
+const title = String.check(process.env.TITLE || process.env.npm_package_name)
+
+export const siteMetadata = { title }
+
 export const plugins = [
   "gatsby-plugin-typescript",
   {
