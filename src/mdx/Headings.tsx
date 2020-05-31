@@ -5,7 +5,7 @@ import slugify from "slugify"
 import Children from "react-children-utilities"
 
 import { useTheme } from "@material-ui/core"
-import { topBarHeight } from "src/material-ui/TopBar"
+import { topBarHeight } from "../material-ui/TopBar"
 
 export interface HeadingProps {
   id?: string
