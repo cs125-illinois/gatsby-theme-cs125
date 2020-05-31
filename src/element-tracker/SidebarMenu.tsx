@@ -1,7 +1,7 @@
 import React, { useState, useLayoutEffect } from "react"
 
 import { useElementTracker, active } from "@cs125/element-tracker"
-import { List, ListItem, Typography } from "@material-ui/core"
+import { List, ListItem } from "@material-ui/core"
 
 export const SidebarMenu: React.FC = () => {
   const { elements } = useElementTracker()
@@ -12,7 +12,10 @@ export const SidebarMenu: React.FC = () => {
       setActiveHeader(undefined)
       return
     }
-    const activeHeader = active(elements.filter(e => e.tagName.toLowerCase() === "h2"))
+    const activeHeader = active(
+      elements.filter(e => e.tagName.toLowerCase() === "h2"),
+      64
+    )
     if (!activeHeader) {
       setActiveHeader(undefined)
       return
@@ -38,14 +41,13 @@ export const SidebarMenu: React.FC = () => {
               }}
               key={i}
             >
-              <Typography
-                variant={"h4"}
+              <h3
                 style={{
                   fontWeight: activeHeader && id && id === activeHeader ? 900 : "normal",
                 }}
               >
                 <span onClick={(): void => setActiveHeader(id)}>{element.textContent}</span>
-              </Typography>
+              </h3>
             </ListItem>
           )
         })}

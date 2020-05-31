@@ -18,7 +18,7 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "types": ["node"],
-    "typeRoots": ["node_modules/@types", "./typings.d.ts"],
+    "typeRoots": ["node_modules/@types", "./typings"],
     "baseUrl": ".",
     "paths": {
       "types/graphql": ["graphql-types.ts"]

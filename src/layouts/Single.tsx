@@ -1,17 +1,16 @@
 import React from "react"
 import PropTypes from "prop-types"
 
-import { ThemeProvider } from "@material-ui/core/styles"
-import { theme } from "../material-ui/theme"
-
 import { Helmet } from "react-helmet"
 import CssBaseline from "@material-ui/core/CssBaseline"
-import { MDXProvider } from "@mdx-js/react"
-import { components } from "../mdx"
-import { StickyBar } from "../material-ui"
-import { MainContainer } from "../material-ui"
-import { SidebarMenu } from "../element-tracker"
+import { ThemeProvider } from "@material-ui/core/styles"
+import { theme } from "../material-ui/theme"
 import { UpdateHash } from "@cs125/element-tracker"
+import { MDXProvider } from "@mdx-js/react"
+import { StickyBar } from "../material-ui"
+import { SidebarMenu } from "../element-tracker"
+import { MainContainer } from "../material-ui"
+import { components } from "../mdx"
 
 export const Single: React.FC = ({ children }) => (
   <>
@@ -25,7 +24,7 @@ export const Single: React.FC = ({ children }) => (
     </Helmet>
     <CssBaseline />
     <ThemeProvider theme={theme}>
-      <UpdateHash filter={element => element.tagName.toLowerCase() === "h2"} />
+      <UpdateHash filter={element => element.tagName.toLowerCase() === "h2"} top={400} />
       <StickyBar minWidth={128} side={"right"} center={"md"}>
         <SidebarMenu />
       </StickyBar>

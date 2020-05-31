@@ -2,10 +2,11 @@ import React from "react"
 import PropTypes from "prop-types"
 
 import { ContainerProps, Container, makeStyles } from "@material-ui/core"
+import { topBarHeight } from "./TopBar"
 
 const useStyles = makeStyles(theme => ({
   root: {
-    paddingTop: theme.spacing(10),
+    paddingTop: topBarHeight(theme) + theme.spacing(2),
     paddingBottom: theme.spacing(2),
   },
 }))

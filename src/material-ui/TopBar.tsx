@@ -1,11 +1,13 @@
 import React, { ReactNode } from "react"
 
-import { AppBar, Container, makeStyles } from "@material-ui/core"
+import { AppBar, Container, makeStyles, Theme } from "@material-ui/core"
 import { LoginButton } from "../react-google-login"
 import { useStaticQuery, graphql } from "gatsby"
 
 import { LogoQuery } from "types/graphql"
 import Image, { FixedObject } from "gatsby-image"
+
+export const topBarHeight = (theme: Theme): number => theme.spacing(8)
 
 const useStyles = makeStyles(theme => ({
   top: {
@@ -14,7 +16,7 @@ const useStyles = makeStyles(theme => ({
     color: theme.palette.text.primary,
   },
   container: {
-    height: theme.spacing(8),
+    height: topBarHeight(theme),
     display: "flex",
     alignItems: "center",
   },

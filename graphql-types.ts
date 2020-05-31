@@ -2397,6 +2397,7 @@ export type SitePageFieldsEnum =
   | 'pluginCreator___resolve'
   | 'pluginCreator___name'
   | 'pluginCreator___version'
+  | 'pluginCreator___pluginOptions___stylesProvider___injectFirst'
   | 'pluginCreator___pluginOptions___fonts'
   | 'pluginCreator___pluginOptions___display'
   | 'pluginCreator___pluginOptions___name'
@@ -2410,6 +2411,7 @@ export type SitePageFieldsEnum =
   | 'pluginCreator___pluginOptions___cacheDigest'
   | 'pluginCreator___pluginOptions___whitelist'
   | 'pluginCreator___pluginOptions___documentPaths'
+  | 'pluginCreator___pluginOptions___pathToConfigModule'
   | 'pluginCreator___pluginOptions___pathCheck'
   | 'pluginCreator___nodeAPIs'
   | 'pluginCreator___browserAPIs'
@@ -2596,6 +2598,7 @@ export type SitePluginFieldsEnum =
   | 'resolve'
   | 'name'
   | 'version'
+  | 'pluginOptions___stylesProvider___injectFirst'
   | 'pluginOptions___fonts'
   | 'pluginOptions___display'
   | 'pluginOptions___name'
@@ -2609,6 +2612,7 @@ export type SitePluginFieldsEnum =
   | 'pluginOptions___cacheDigest'
   | 'pluginOptions___whitelist'
   | 'pluginOptions___documentPaths'
+  | 'pluginOptions___pathToConfigModule'
   | 'pluginOptions___pathCheck'
   | 'nodeAPIs'
   | 'browserAPIs'
@@ -2722,6 +2726,7 @@ export type SitePluginPackageJsonPeerDependenciesFilterListInput = {
 };
 
 export type SitePluginPluginOptions = {
+  stylesProvider?: Maybe<SitePluginPluginOptionsStylesProvider>;
   fonts?: Maybe<Array<Maybe<Scalars['String']>>>;
   display?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
@@ -2735,10 +2740,12 @@ export type SitePluginPluginOptions = {
   cacheDigest?: Maybe<Scalars['String']>;
   whitelist?: Maybe<Array<Maybe<Scalars['String']>>>;
   documentPaths?: Maybe<Array<Maybe<Scalars['String']>>>;
+  pathToConfigModule?: Maybe<Scalars['String']>;
   pathCheck?: Maybe<Scalars['Boolean']>;
 };
 
 export type SitePluginPluginOptionsFilterInput = {
+  stylesProvider?: Maybe<SitePluginPluginOptionsStylesProviderFilterInput>;
   fonts?: Maybe<StringQueryOperatorInput>;
   display?: Maybe<StringQueryOperatorInput>;
   name?: Maybe<StringQueryOperatorInput>;
@@ -2752,7 +2759,16 @@ export type SitePluginPluginOptionsFilterInput = {
   cacheDigest?: Maybe<StringQueryOperatorInput>;
   whitelist?: Maybe<StringQueryOperatorInput>;
   documentPaths?: Maybe<StringQueryOperatorInput>;
+  pathToConfigModule?: Maybe<StringQueryOperatorInput>;
   pathCheck?: Maybe<BooleanQueryOperatorInput>;
+};
+
+export type SitePluginPluginOptionsStylesProvider = {
+  injectFirst?: Maybe<Scalars['Boolean']>;
+};
+
+export type SitePluginPluginOptionsStylesProviderFilterInput = {
+  injectFirst?: Maybe<BooleanQueryOperatorInput>;
 };
 
 export type SitePluginSortInput = {

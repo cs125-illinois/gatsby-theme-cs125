@@ -2,7 +2,14 @@ import path from "path"
 
 export const plugins = [
   "gatsby-plugin-typescript",
-  "gatsby-plugin-material-ui",
+  {
+    resolve: "gatsby-plugin-material-ui",
+    options: {
+      stylesProvider: {
+        injectFirst: true,
+      },
+    },
+  },
   {
     resolve: "gatsby-plugin-google-fonts",
     options: {
@@ -51,6 +58,12 @@ export const plugins = [
     resolve: "gatsby-plugin-graphql-codegen",
     options: {
       documentPaths: ["./src/**/*.{ts,tsx}"],
+    },
+  },
+  {
+    resolve: "gatsby-plugin-typography",
+    options: {
+      pathToConfigModule: path.join(__dirname, "src", "typography", "typography"),
     },
   },
 ]
