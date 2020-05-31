@@ -3,7 +3,8 @@ import PropTypes from "prop-types"
 
 import { AppBar, Container, makeStyles, Theme, Typography } from "@material-ui/core"
 import { LoginButton } from "../react-google-login"
-import { useStaticQuery, graphql } from "gatsby"
+import { graphql } from "gatsby"
+import { useStaticQuery } from "gatsby"
 
 import { LogoQuery } from "types/graphql"
 import Image, { FixedObject } from "gatsby-image"
