@@ -2,5 +2,4 @@
 /public
 /.cache
 .env.*
-*.ts
-*.tsx
+!*.d.ts
