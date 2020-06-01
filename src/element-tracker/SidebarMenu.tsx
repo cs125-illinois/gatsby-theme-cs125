@@ -5,10 +5,14 @@ import { useElementTracker, active } from "@cs125/element-tracker"
 import { List, ListItem, Typography, makeStyles } from "@material-ui/core"
 
 const useStyles = makeStyles(theme => ({
+  list: {
+    "&:hover": {
+      cursor: "pointer",
+    },
+  },
   item: {
     paddingLeft: theme.spacing(1),
     "&:hover": {
-      cursor: "pointer",
       borderLeft: `4px solid ${theme.palette.action.disabled}`,
     },
   },
@@ -52,7 +56,7 @@ export const SidebarMenu: React.FC<SidebarMenuProps> = ({ top = 0 }) => {
     return null
   }
   return (
-    <List dense>
+    <List dense className={classes.list}>
       {elements
         .filter(e => e.tagName.toLowerCase() === "h2")
         .map((element, i) => {

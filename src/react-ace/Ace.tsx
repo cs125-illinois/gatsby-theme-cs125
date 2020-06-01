@@ -67,7 +67,7 @@ export const Ace: React.FC<AceProps> = ({
   const gutterWidth = theme.spacing(3)
 
   const commands = (props.commands || []).concat(DISABLED_COMMANDS)
-  const setOptions = props.setOptions || ({} as IAceOptions)
+  const setOptions = Object.assign({}, props.setOptions)
   const value = props.value !== undefined ? props.value : children ? Children.onlyText(children).trim() : props.value
 
   displayOnly = displayOnly !== undefined ? displayOnly : !(props.mode === "java" || props.mode === "kotlin")
@@ -150,4 +150,8 @@ Ace.defaultProps = {
   mode: "text",
   fontSize: "1rem",
   maxLines: 32,
+  setOptions: {
+    tabSize: 2,
+    useSoftTabs: true,
+  },
 }
