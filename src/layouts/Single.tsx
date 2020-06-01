@@ -1,4 +1,4 @@
-import React from "react"
+import React, { ReactNode } from "react"
 import PropTypes from "prop-types"
 
 import { useStaticQuery } from "gatsby"
@@ -18,7 +18,11 @@ import { MainContainer } from "../material-ui"
 import { components } from "../mdx"
 import { FixedObject } from "gatsby-image"
 
-export const Single: React.FC = ({ children }) => {
+export interface SingleProps {
+  title?: string
+  children: ReactNode
+}
+export const Single: React.FC<SingleProps> = ({ title, children }) => {
   const data: SingleQuery = useStaticQuery(graphql`
     query Single {
       site {
@@ -53,7 +57,7 @@ export const Single: React.FC = ({ children }) => {
         <CssBaseline />
         <UpdateHash filter={element => element.tagName.toLowerCase() === "h2"} />
         <TopBar
-          title={<code>{data.site?.siteMetadata?.title}</code>}
+          title={<code>{title || data.site?.siteMetadata?.title}</code>}
           logo={data.file?.childImageSharp?.fixed as FixedObject}
         />
         <StickyBar minWidth={128} side={"right"} center={"md"}>
@@ -67,5 +71,6 @@ export const Single: React.FC = ({ children }) => {
   )
 }
 Single.propTypes = {
+  title: PropTypes.string,
   children: PropTypes.node.isRequired,
 }

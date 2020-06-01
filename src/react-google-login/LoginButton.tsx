@@ -22,6 +22,7 @@ const useStyles = makeStyles(theme => ({
     color: theme.palette.background.default,
     textTransform: "none",
     fontWeight: "bold",
+    fontSize: "0.8rem",
   },
   success: {
     backgroundColor: theme.palette.success.main,
