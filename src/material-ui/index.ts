@@ -1,6 +1,6 @@
 export { MainContainer } from "./MainContainer"
 export { MinWidth } from "./MinWidth"
 export { StickyBar } from "./StickyBar"
-export { theme } from "./theme"
 export { TopBar } from "./TopBar"
 export { Lead } from "./Typography"
+export { ThemeProvider } from "./ThemeProvider"

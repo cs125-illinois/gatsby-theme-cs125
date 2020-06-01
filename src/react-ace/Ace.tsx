@@ -4,7 +4,13 @@ import PropTypes from "prop-types"
 import { makeStyles, useTheme } from "@material-ui/core"
 import Children from "react-children-utilities"
 
-import AceEditor, { IAceEditorProps, ICommand, IAceOptions } from "react-ace"
+import AceEditor, { IAceEditorProps, ICommand } from "react-ace"
+
+import "ace-builds/src-noconflict/mode-sh"
+import "ace-builds/src-noconflict/mode-java"
+import "ace-builds/src-noconflict/mode-kotlin"
+import "ace-builds/src-noconflict/theme-chrome"
+import "ace-builds/src-noconflict/theme-tomorrow_night"
 
 const useStyles = makeStyles(theme => ({
   "@global": {
@@ -63,8 +69,8 @@ export const Ace: React.FC<AceProps> = ({
   const display = useRef(typeof window !== "undefined")
 
   const classes = useStyles()
-  const theme = useTheme()
-  const gutterWidth = theme.spacing(3)
+  const muiTheme = useTheme()
+  const gutterWidth = muiTheme.spacing(3)
 
   const commands = (props.commands || []).concat(DISABLED_COMMANDS)
   const setOptions = Object.assign({}, props.setOptions)
@@ -80,6 +86,8 @@ export const Ace: React.FC<AceProps> = ({
     setOptions.fixedWidthGutter = true
   }
 
+  const theme = props.theme || muiTheme.palette.type === "light" ? "chrome" : "tomorrow_night"
+
   return (
     <div
       className={`${classes.wrapper} ${displayOnly && "ace_display_only"}`.trim()}
@@ -91,7 +99,7 @@ export const Ace: React.FC<AceProps> = ({
             position: "absolute",
             top: 0,
             left: 0,
-            width: gutterWidth + theme.spacing(1) + 2,
+            width: gutterWidth + muiTheme.spacing(1) + 2,
             bottom: 0,
             backgroundColor: "rgba(0,0,0,0.05)",
           }}
@@ -132,6 +140,7 @@ export const Ace: React.FC<AceProps> = ({
         showPrintMargin={showPrintMargin}
         setOptions={setOptions}
         className={classes.editor}
+        theme={theme}
       />
     </div>
   )
@@ -144,7 +153,6 @@ Ace.propTypes = {
 }
 Ace.defaultProps = {
   clickOut: true,
-  theme: "chrome",
   width: "100%",
   showPrintMargin: false,
   mode: "text",
