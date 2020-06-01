@@ -4,7 +4,7 @@
     "sourceMap": true,
     "declaration": true,
     "target": "es2019",
-    "module": "esnext",
+    "module": "esm",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "jsx": "react",
