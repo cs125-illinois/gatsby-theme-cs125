@@ -6,7 +6,10 @@ import { ElementTracker } from "@cs125/element-tracker"
 
 import { String } from "runtypes"
 const GOOGLE_CLIENT_ID = String.check(process.env.GOOGLE_CLIENT_ID)
-const ET_SERVER = String.check(process.env.ET_SERVER)
+const ET_SERVER = process.env.ET_SERVER && String.check(process.env.ET_SERVER)
+
+console.log(`GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}`)
+ET_SERVER && console.log(`ET_SERVER: ${ET_SERVER}`)
 
 export const wrapRootElement: GatsbyBrowser["wrapRootElement"] = ({ element }: WrapRootElementBrowserArgs) => {
   return (
