@@ -3,5 +3,3 @@
 /.cache
 .env.*
 !*.d.ts
-/src/pages/*.mdx
-!/src/pages/.gitignore
