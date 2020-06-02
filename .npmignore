@@ -3,3 +3,5 @@
 /.cache
 .env.*
 !*.d.ts
+/src/pages/*
+!/src/pages/.gitignore
