@@ -50,7 +50,7 @@ const lightTheme = {
   },
   palette: {
     text: {
-      primary: "#FFFFFF",
+      primary: "#444444",
     },
   },
 }

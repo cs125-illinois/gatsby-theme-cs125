@@ -1,10 +1,22 @@
 import React, { ReactNode } from "react"
 import PropTypes from "prop-types"
 
-import { AppBar, Container, makeStyles, Theme, Typography } from "@material-ui/core"
+import {
+  AppBar,
+  Container,
+  makeStyles,
+  Theme,
+  Typography,
+  useTheme,
+  useMediaQuery,
+  IconButton,
+} from "@material-ui/core"
 import { LoginButton } from "../react-google-login"
 
 import Image, { FixedObject } from "gatsby-image"
+
+import { InvertColors } from "@material-ui/icons"
+import { useColorScheme } from "./ThemeProvider"
 
 export const topBarHeight = (theme: Theme): number => theme.spacing(8)
 
@@ -33,6 +45,9 @@ interface TopBarProps {
 }
 export const TopBar: React.FC<TopBarProps> = ({ title, logo }) => {
   const classes = useStyles()
+  const theme = useTheme()
+  const { colorScheme, setColorScheme } = useColorScheme()
+  const thin = useMediaQuery(theme.breakpoints.down("sm"))
 
   return (
     <AppBar className={classes.top}>
@@ -41,9 +56,14 @@ export const TopBar: React.FC<TopBarProps> = ({ title, logo }) => {
         <Typography variant={"h3"} component={"div"} noWrap style={{ flex: 1 }}>
           <code>{title}</code>
         </Typography>
-        <div style={{ flexShrink: 0 }}>
-          <LoginButton style={{ flexShrink: 0 }} />
-        </div>
+        <IconButton
+          onClick={(): void => {
+            setColorScheme(colorScheme === "light" ? "dark" : "light")
+          }}
+        >
+          <InvertColors />
+        </IconButton>
+        <LoginButton iconOnly={thin} />
       </Container>
     </AppBar>
   )

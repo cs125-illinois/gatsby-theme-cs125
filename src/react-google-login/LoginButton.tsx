@@ -3,8 +3,10 @@ import PropTypes from "prop-types"
 
 import { useGoogleLogin } from "@cs125/react-google-login"
 
-import { Button, ButtonProps, makeStyles, CircularProgress } from "@material-ui/core"
-import { FaGoogle } from "react-icons/fa"
+import { Button, ButtonProps, makeStyles, CircularProgress, useTheme } from "@material-ui/core"
+import { Google } from "mdi-material-ui"
+import { Error, ExitToApp } from "@material-ui/icons"
+
 import { grey } from "@material-ui/core/colors"
 
 const useStyles = makeStyles(theme => ({
@@ -13,16 +15,23 @@ const useStyles = makeStyles(theme => ({
     margin: theme.spacing(1),
     position: "relative",
   },
-  right: {
-    float: "right",
-  },
   button: {
-    width: "6rem",
+    width: "5rem",
+    height: theme.spacing(4),
     lineHeight: "normal",
     color: theme.palette.background.default,
     textTransform: "none",
     fontWeight: "bold",
     fontSize: "0.8rem",
+    padding: theme.spacing(1),
+  },
+  iconOnly: {
+    width: "3rem",
+    minWidth: "3rem",
+    fontSize: theme.spacing(3),
+  },
+  icon: {
+    marginBottom: -2,
   },
   success: {
     backgroundColor: theme.palette.success.main,
@@ -50,12 +59,13 @@ const useStyles = makeStyles(theme => ({
 }))
 
 export interface LoginButtonProps extends ButtonProps {
-  right?: boolean
+  iconOnly?: boolean
 }
-export const LoginButton: React.FC<LoginButtonProps> = ({ right, ...props }) => {
+export const LoginButton: React.FC<LoginButtonProps> = ({ iconOnly = false, ...props }) => {
   const { ready, auth, isSignedIn, err, lastLogin } = useGoogleLogin()
   const [busy, setBusy] = useState<boolean>(false)
   const classes = useStyles()
+  const theme = useTheme()
 
   const loginOrOut = useCallback(
     (isSignedIn: boolean | undefined) => async (): Promise<void> => {
@@ -87,27 +97,29 @@ export const LoginButton: React.FC<LoginButtonProps> = ({ right, ...props }) => 
     disabled = false,
     className
   if (err !== undefined) {
-    content = <div>Error</div>
+    content = iconOnly ? <Error /> : <div>Error</div>
     disabled = true
   } else if ((!ready && lastLogin === undefined) || (ready && !isSignedIn)) {
-    content = (
+    content = iconOnly ? (
+      <Google fontSize={"inherit"} />
+    ) : (
       <div>
-        <FaGoogle style={{ marginBottom: -2 }} /> Login
+        <Google fontSize={"inherit"} className={classes.icon} /> Login
       </div>
     )
     className = classes.success
   } else {
-    content = <div>Logout</div>
+    content = iconOnly ? <ExitToApp fontSize={"inherit"} /> : <div>Logout</div>
     className = classes.logout
   }
 
   return (
-    <div className={`${classes.wrapper} ${right && classes.right}`.trim()}>
+    <div className={classes.wrapper}>
       <Button
         variant={"contained"}
         disableElevation={className === classes.logout}
         disabled={disabled}
-        className={`${classes.button} ${className}`}
+        className={`${classes.button} ${className} ${iconOnly ? classes.iconOnly : ""}`.trim()}
         onClick={
           !err && ready && !busy
             ? loginOrOut(isSignedIn)
@@ -119,13 +131,13 @@ export const LoginButton: React.FC<LoginButtonProps> = ({ right, ...props }) => 
       >
         {content}
       </Button>
-      {loading && showLoading && <CircularProgress size={24} thickness={5} className={classes.loading} />}
+      {loading && showLoading && <CircularProgress size={theme.spacing(3)} thickness={5} className={classes.loading} />}
     </div>
   )
 }
 LoginButton.propTypes = {
-  right: PropTypes.bool,
+  iconOnly: PropTypes.bool,
 }
 LoginButton.defaultProps = {
-  right: false,
+  iconOnly: false,
 }
