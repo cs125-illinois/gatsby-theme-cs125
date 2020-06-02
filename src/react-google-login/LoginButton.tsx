@@ -61,8 +61,7 @@ export interface LoginButtonProps extends ButtonProps {
   iconOnly?: boolean
 }
 export const LoginButton: React.FC<LoginButtonProps> = ({ iconOnly = false, ...props }) => {
-  const { ready, auth, isSignedIn, err, lastLogin } = useGoogleLogin()
-  const [busy, setBusy] = useState<boolean>(false)
+  const { ready, auth, isSignedIn, err, lastLogin, loggingIn, setLoggingIn } = useGoogleLogin()
   const classes = useStyles()
   const theme = useTheme()
 
@@ -71,14 +70,14 @@ export const LoginButton: React.FC<LoginButtonProps> = ({ iconOnly = false, ...p
       if (!auth) {
         return
       }
-      setBusy(true)
+      setLoggingIn(true)
       try {
         await (!isSignedIn ? auth.signIn() : auth.signOut())
       } finally {
-        setBusy(false)
+        setLoggingIn(false)
       }
     },
-    [auth, setBusy]
+    [auth, setLoggingIn]
   )
 
   const [showLoading, setShowLoading] = useState<boolean>(false)
@@ -91,7 +90,7 @@ export const LoginButton: React.FC<LoginButtonProps> = ({ iconOnly = false, ...p
     }
   }, [])
 
-  const loading = !err && (!ready || busy)
+  const loading = !err && (!ready || loggingIn)
   let content,
     disabled = false,
     className
@@ -120,7 +119,7 @@ export const LoginButton: React.FC<LoginButtonProps> = ({ iconOnly = false, ...p
         disabled={disabled}
         className={`${classes.button} ${className} ${iconOnly ? classes.iconOnly : ""}`.trim()}
         onClick={
-          !err && ready && !busy
+          !err && ready && !loggingIn
             ? loginOrOut(isSignedIn)
             : (): void => {
                 return
