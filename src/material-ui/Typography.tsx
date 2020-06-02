@@ -1,7 +1,8 @@
-import React from "react"
+import React, { ReactNode } from "react"
 import PropTypes from "prop-types"
 
-import { Typography, makeStyles } from "@material-ui/core"
+import { Typography, makeStyles, Link, LinkProps } from "@material-ui/core"
+import { Link as GatsbyLink, GatsbyLinkProps } from "gatsby"
 
 const useStyles = makeStyles(theme => ({
   lead: {
@@ -60,5 +61,28 @@ export const Lead: React.FC = ({ children }) => {
   return <>{elements}</>
 }
 Lead.propTypes = {
+  children: PropTypes.any.isRequired,
+}
+
+export const WrappedGatsbyLink = React.forwardRef(
+  (props: Omit<GatsbyLinkProps<unknown>, "ref">, ref: React.Ref<HTMLAnchorElement>) => (
+    <GatsbyLink {...props} innerRef={ref} />
+  )
+)
+WrappedGatsbyLink.displayName = "WrappedGatsbyLink"
+
+export const A: React.FC<LinkProps> = ({ href, ...props }) => {
+  if (!href) {
+    return <Link {...props} />
+  } else if (href.startsWith("https://") || href.startsWith("http://") || href.startsWith("//")) {
+    const target = props.target || "_blank"
+    return <Link target={target} href={href} {...props} />
+  } else {
+    return <Link component={WrappedGatsbyLink} {...props} to={href} />
+  }
+}
+A.propTypes = {
+  href: PropTypes.string.isRequired,
+  target: PropTypes.string,
   children: PropTypes.any.isRequired,
 }

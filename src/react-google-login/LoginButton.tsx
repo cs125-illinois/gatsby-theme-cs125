@@ -12,7 +12,6 @@ import { grey } from "@material-ui/core/colors"
 const useStyles = makeStyles(theme => ({
   wrapper: {
     display: "inline-block",
-    margin: theme.spacing(1),
     position: "relative",
   },
   button: {

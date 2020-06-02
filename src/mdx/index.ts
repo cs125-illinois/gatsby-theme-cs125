@@ -1,5 +1,5 @@
 import { headings } from "./Headings"
-import { P } from "../material-ui/Typography"
+import { P, A } from "../material-ui/Typography"
 import { Code, Pre } from "./Code"
 
 export const components = {
@@ -7,4 +7,5 @@ export const components = {
   p: P,
   code: Code,
   pre: Pre,
+  a: A,
 }

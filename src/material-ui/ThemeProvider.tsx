@@ -26,7 +26,6 @@ export const ThemeProvider: React.FC = ({ children }) => {
   }, [])
 
   const theme = colorScheme === "dark" ? dark : light
-  console.log(colorScheme)
   return (
     <ThemeContext.Provider value={{ colorScheme, setColorScheme }}>
       <MuiThemeProvider theme={theme}>{children}</MuiThemeProvider>
