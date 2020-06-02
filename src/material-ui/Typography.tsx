@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react"
+import React from "react"
 import PropTypes from "prop-types"
 
 import { Typography, makeStyles, Link, LinkProps } from "@material-ui/core"
@@ -8,6 +8,9 @@ const useStyles = makeStyles(theme => ({
   lead: {
     marginBottom: theme.spacing(3),
     fontSize: "1.5em",
+  },
+  link: {
+    color: theme.palette.type === "light" ? theme.palette.secondary.main : theme.palette.primary.main,
   },
 }))
 
@@ -72,11 +75,14 @@ export const WrappedGatsbyLink = React.forwardRef(
 WrappedGatsbyLink.displayName = "WrappedGatsbyLink"
 
 export const A: React.FC<LinkProps> = ({ href, ...props }) => {
+  const classes = useStyles()
+
+  props.className = classes.link
+
   if (!href) {
     return <Link {...props} />
   } else if (href.startsWith("https://") || href.startsWith("http://") || href.startsWith("//")) {
-    const target = props.target || "_blank"
-    return <Link target={target} href={href} {...props} />
+    return <Link target={"_blank"} {...props} href={href} />
   } else {
     return <Link component={WrappedGatsbyLink} {...props} to={href} />
   }

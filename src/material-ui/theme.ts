@@ -49,6 +49,12 @@ const lightTheme = {
     },
   },
   palette: {
+    primary: {
+      main: "#13294b",
+    },
+    secondary: {
+      main: "#e84a27",
+    },
     text: {
       primary: "#444444",
     },
