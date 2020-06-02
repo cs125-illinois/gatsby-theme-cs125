@@ -2,7 +2,7 @@
   "name": "@cs125/gatsby-theme-cs125",
   "description": "Gatsby theme and React components for CS 125.",
   "license": "MIT",
-  "version": "2020.6.5",
+  "version": "2020.6.6",
   "main": "index.js",
   "scripts": {
     "backend": "npm run backend:up || npm run backend:down",
