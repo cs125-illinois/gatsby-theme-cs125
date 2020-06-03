@@ -57,7 +57,7 @@
     "node-sass": "^4.14.1",
     "prop-types": "^15.7.2",
     "react": "^16.13.1",
-    "react-ace": "^9.0.0",
+    "react-ace": "https://github.com/cs125-illinois/react-ace",
     "react-children-utilities": "^2.1.1",
     "react-dom": "^16.13.1",
     "react-helmet": "^6.0.0",

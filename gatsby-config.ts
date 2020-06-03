@@ -73,6 +73,7 @@ if (process.env.THEME_DEVELOPMENT) {
       aliases: {
         react: "./node_modules/react",
         "@cs125/element-tracker": "../element-tracker/",
+        "react-ace": "../react-ace",
       },
     },
   })

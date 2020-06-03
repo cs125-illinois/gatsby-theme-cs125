@@ -57,12 +57,14 @@ export interface AceProps extends IAceEditorProps {
   clickOut?: boolean
   displayOnly?: boolean
   initialCursorPosition?: number[]
+  overlays?: ReactNode[] | ReactNode
   children?: ReactNode
 }
 export const Ace: React.FC<AceProps> = ({
   clickOut = true,
   displayOnly,
   initialCursorPosition,
+  overlays = [],
   children,
   ...props
 }) => {
@@ -72,7 +74,12 @@ export const Ace: React.FC<AceProps> = ({
 
   const commands = (props.commands || []).concat(DISABLED_COMMANDS)
   const setOptions = Object.assign({}, props.setOptions)
-  const value = props.value !== undefined ? props.value : children ? Children.onlyText(children).trim() : props.value
+  const defaultValue =
+    props.defaultValue !== undefined
+      ? props.defaultValue
+      : children
+      ? Children.onlyText(children).trim()
+      : props.defaultValue
 
   displayOnly = displayOnly !== undefined ? displayOnly : !(props.mode === "java" || props.mode === "kotlin")
 
@@ -100,6 +107,7 @@ export const Ace: React.FC<AceProps> = ({
           }}
         />
       )}
+      {overlays && overlays}
       <AceEditor
         {...props}
         onBeforeLoad={ace => {
@@ -120,6 +128,7 @@ export const Ace: React.FC<AceProps> = ({
           if (!displayOnly && initialCursorPosition) {
             editor.moveCursorTo(initialCursorPosition[0], initialCursorPosition[1])
           }
+          props.onLoad && props.onLoad(editor)
         }}
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onBlur={(event, editor: any) => {
@@ -131,7 +140,7 @@ export const Ace: React.FC<AceProps> = ({
           props.onBlur && props.onBlur(event, editor)
         }}
         commands={commands}
-        value={value}
+        defaultValue={defaultValue}
         showPrintMargin={showPrintMargin}
         setOptions={setOptions}
         className={classes.editor}
@@ -143,6 +152,7 @@ export const Ace: React.FC<AceProps> = ({
 Ace.propTypes = {
   clickOut: PropTypes.bool,
   initialCursorPosition: PropTypes.arrayOf(PropTypes.number.isRequired),
+  overlays: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node.isRequired), PropTypes.node.isRequired]),
   children: PropTypes.node,
   ...AceEditor.propTypes,
 }
