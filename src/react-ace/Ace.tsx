@@ -66,8 +66,6 @@ export const Ace: React.FC<AceProps> = ({
   children,
   ...props
 }) => {
-  const display = useRef(typeof window !== "undefined")
-
   const classes = useStyles()
   const muiTheme = useTheme()
   const gutterWidth = muiTheme.spacing(3)
@@ -89,10 +87,7 @@ export const Ace: React.FC<AceProps> = ({
   const theme = props.theme || muiTheme.palette.type === "light" ? "chrome" : "tomorrow_night"
 
   return (
-    <div
-      className={`${classes.wrapper} ${displayOnly && "ace_display_only"}`.trim()}
-      style={{ display: display.current ? "block" : "none" }}
-    >
+    <div className={`${classes.wrapper} ${displayOnly && "ace_display_only"}`.trim()}>
       {!displayOnly && (
         <div
           style={{

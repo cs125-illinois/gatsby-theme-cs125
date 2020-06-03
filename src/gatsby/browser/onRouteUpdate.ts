@@ -1,7 +1,7 @@
 import { GatsbyBrowser, RouteUpdateArgs } from "gatsby"
 
 export const onRouteUpdate: GatsbyBrowser["onRouteUpdate"] = async ({ location }: RouteUpdateArgs) => {
-  if (!location) {
+  if (typeof window === "undefined" || !location) {
     return true
   }
   try {

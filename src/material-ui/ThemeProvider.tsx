@@ -17,7 +17,9 @@ export const ThemeContext = React.createContext<ThemeContext>({
 })
 
 export const ThemeProvider: React.FC = ({ children }) => {
-  const savedColorScheme = useRef(window && localStorage.getItem("ThemeProvider:savedColorScheme"))
+  const savedColorScheme = useRef(
+    typeof window !== "undefined" && localStorage.getItem("ThemeProvider:savedColorScheme")
+  )
   const mediaColorScheme = useMediaQuery("(prefers-color-scheme: dark)") ? "dark" : "light"
   const [colorScheme, setColorSchemeState] = useState(savedColorScheme.current || mediaColorScheme)
   const setColorScheme = useCallback((colorScheme: string) => {

@@ -61,12 +61,11 @@ export const SidebarMenu: React.FC<SidebarMenuProps> = ({ top = 0 }) => {
         .filter(e => e.tagName.toLowerCase() === "h2")
         .map((element, i) => {
           const id = element.getAttribute("data-et-id") || element.id
-          const headerLocation = `${window.location.href.split("#")[0]}#${id}`
           const active = activeHeader && id && id === activeHeader
           return (
             <ListItem
               onClick={(): void => {
-                window.location.href = headerLocation
+                window.location.href = `${window.location.href.split("#")[0]}#${id}`
               }}
               key={i}
             >
