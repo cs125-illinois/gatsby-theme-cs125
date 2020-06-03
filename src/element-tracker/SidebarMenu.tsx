@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect } from "react"
+import React, { useState, useLayoutEffect, useEffect } from "react"
 import PropTypes from "prop-types"
 
 import { useElementTracker, active } from "@cs125/element-tracker"
@@ -30,10 +30,15 @@ export interface SidebarMenuProps {
   top?: number
 }
 export const SidebarMenu: React.FC<SidebarMenuProps> = ({ top = 0 }) => {
-  const { elements } = useElementTracker()
+  const { elements, updateElements } = useElementTracker()
   const [activeHeader, setActiveHeader] = useState<string | undefined>(undefined)
 
   const classes = useStyles()
+
+  useEffect(() => {
+    updateElements()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useLayoutEffect(() => {
     if (!elements || elements.length === 0) {
