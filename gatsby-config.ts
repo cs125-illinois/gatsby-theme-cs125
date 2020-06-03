@@ -5,8 +5,7 @@ const title = String.check(process.env.npm_package_name)
 const description = String.check(process.env.npm_package_description)
 
 export const siteMetadata = { title, description }
-
-export const plugins = [
+export const plugins: unknown[] = [
   "gatsby-plugin-typescript",
   {
     resolve: "gatsby-plugin-material-ui",
@@ -45,8 +44,8 @@ export const plugins = [
   {
     resolve: "gatsby-plugin-manifest",
     options: {
-      name: process.env.npm_package_name,
-      short_name: process.env.npm_package_name,
+      name: title,
+      short_name: title,
       icon: require.resolve("./src/images/logo.png"),
     },
   },
@@ -67,3 +66,14 @@ export const plugins = [
     },
   },
 ]
+if (process.env.THEME_DEVELOPMENT) {
+  plugins.push({
+    resolve: "gatsby-alias-imports",
+    options: {
+      aliases: {
+        react: "./node_modules/react",
+        "@cs125/element-tracker": "../element-tracker/",
+      },
+    },
+  })
+}

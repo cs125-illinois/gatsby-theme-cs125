@@ -20,7 +20,7 @@
     "postpublish": "mv gatsby-config.js.bac gatsby-config.js && git clean -df",
     "prepublishOnly": "npm run check && mv gatsby-config.js gatsby-config.js.bac && tsc",
     "serve": "gatsby serve -p 1234 -H 0.0.0.0",
-    "start": "concurrently -n example,backend --handle-input \"nodemon\" \"npm run backend\"",
+    "start": "nodemon",
     "tsc": "tsc --noEmit",
     "prettier": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md,yaml}\" && prettier-package-json --write"
   },
@@ -38,6 +38,7 @@
     "@types/throttle-debounce": "^2.1.0",
     "ace-builds": "^1.4.11",
     "gatsby": "^2.22.17",
+    "gatsby-alias-imports": "^1.0.4",
     "gatsby-image": "^2.4.6",
     "gatsby-plugin-env-variables": "^1.0.2",
     "gatsby-plugin-google-fonts": "^1.0.1",

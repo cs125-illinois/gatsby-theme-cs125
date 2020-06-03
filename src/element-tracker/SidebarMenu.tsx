@@ -30,15 +30,10 @@ export interface SidebarMenuProps {
   top?: number
 }
 export const SidebarMenu: React.FC<SidebarMenuProps> = ({ top = 0 }) => {
-  const { elements, updateElements } = useElementTracker()
+  const { elements } = useElementTracker()
   const [activeHeader, setActiveHeader] = useState<string | undefined>(undefined)
 
   const classes = useStyles()
-
-  useEffect(() => {
-    updateElements()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   useLayoutEffect(() => {
     if (!elements || elements.length === 0) {
