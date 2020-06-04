@@ -13,3 +13,6 @@ code {
     font-size: inherit;
   }
 }
+audio:focus {
+  outline: none !important;
+}
