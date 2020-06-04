@@ -3,8 +3,6 @@ import { GatsbyBrowser, WrapRootElementBrowserArgs } from "gatsby"
 
 import { GoogleLoginProvider, WithGoogleTokens } from "@cs125/react-google-login"
 import { ElementTrackerServer } from "@cs125/element-tracker"
-import { ThemeProvider } from "../../material-ui"
-import { CssBaseline } from "@material-ui/core"
 
 import { String } from "runtypes"
 const GOOGLE_CLIENT_ID = String.check(process.env.GOOGLE_CLIENT_ID)
@@ -19,10 +17,7 @@ export const wrapRootElement: GatsbyBrowser["wrapRootElement"] = ({ element }: W
       <WithGoogleTokens>
         {({ idToken }) => (
           <ElementTrackerServer server={ET_SERVER} googleToken={idToken}>
-            <ThemeProvider>
-              <CssBaseline />
-              {element}
-            </ThemeProvider>
+            {element}
           </ElementTrackerServer>
         )}
       </WithGoogleTokens>

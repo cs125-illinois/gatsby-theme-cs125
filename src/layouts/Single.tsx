@@ -1,6 +1,8 @@
 import React, { ReactNode } from "react"
 import PropTypes from "prop-types"
 
+import { ThemeProvider } from "../material-ui"
+import { CssBaseline } from "@material-ui/core"
 import { ElementTracker, UpdateHash } from "@cs125/element-tracker"
 import { SavePosition } from "../gatsby/SavePosition"
 import { Helmet } from "react-helmet"
@@ -19,25 +21,28 @@ export interface SingleProps {
   children: ReactNode
 }
 export const Single: React.FC<SingleProps> = ({ title, description, logo, children }) => (
-  <ElementTracker>
-    <SavePosition />
-    <Helmet>
-      <meta charSet="utf-8" />
-      <title>{title}</title>
-      <meta name="description" content={description} />
-      <link rel="preconnect" href="https://accounts.google.com" crossOrigin="use-credentials" />
-      <link rel="preconnect" href="https://ssl.gstatic.com" crossOrigin="use-credentials" />
-      <link rel="preconnect" href="https://apis.google.com" crossOrigin="use-credentials" />
-    </Helmet>
-    <UpdateHash filter={element => element.tagName.toLowerCase() === "h2"} />
-    <TopBar title={<code>{title}</code>} logo={logo} />
-    <StickyBar minWidth={128} side={"right"} center={"md"}>
-      <SidebarMenu />
-    </StickyBar>
-    <MainContainer>
-      <MDXProvider components={components}>{children}</MDXProvider>
-    </MainContainer>
-  </ElementTracker>
+  <ThemeProvider>
+    <CssBaseline />
+    <ElementTracker>
+      <SavePosition />
+      <Helmet>
+        <meta charSet="utf-8" />
+        <title>{title}</title>
+        <meta name="description" content={description} />
+        <link rel="preconnect" href="https://accounts.google.com" crossOrigin="use-credentials" />
+        <link rel="preconnect" href="https://ssl.gstatic.com" crossOrigin="use-credentials" />
+        <link rel="preconnect" href="https://apis.google.com" crossOrigin="use-credentials" />
+      </Helmet>
+      <UpdateHash filter={element => element.tagName.toLowerCase() === "h2"} />
+      <TopBar title={<code>{title}</code>} logo={logo} />
+      <StickyBar minWidth={128} side={"right"} center={"md"}>
+        <SidebarMenu />
+      </StickyBar>
+      <MainContainer>
+        <MDXProvider components={components}>{children}</MDXProvider>
+      </MainContainer>
+    </ElementTracker>
+  </ThemeProvider>
 )
 
 Single.propTypes = {
