@@ -2,7 +2,7 @@ import React, { ReactNode } from "react"
 import PropTypes from "prop-types"
 
 import { ElementTracker, UpdateHash } from "@cs125/element-tracker"
-import { SavePosition } from "src/gatsby/SavePosition"
+import { SavePosition } from "../gatsby/SavePosition"
 import { Helmet } from "react-helmet"
 import { TopBar } from "../material-ui/"
 import { MDXProvider } from "@mdx-js/react"

@@ -16,8 +16,6 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "types": ["node"],
-    "typeRoots": ["node_modules/@types", "./typings"],
-    "baseUrl": "."
+    "typeRoots": ["node_modules/@types", "./typings"]
   }
 }

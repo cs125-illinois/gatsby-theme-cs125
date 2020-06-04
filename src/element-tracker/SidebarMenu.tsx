@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect, useEffect } from "react"
+import React, { useState, useLayoutEffect } from "react"
 import PropTypes from "prop-types"
 
 import { useElementTracker, active } from "@cs125/element-tracker"
