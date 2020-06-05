@@ -29,9 +29,11 @@ export const Single: React.FC<SingleProps> = ({ title, description, logo, childr
         <meta charSet="utf-8" />
         <title>{title}</title>
         <meta name="description" content={description} />
+        <link rel="preconnect" href="https://fonts.gstatic.com" />
         <link rel="preconnect" href="https://accounts.google.com" crossOrigin="use-credentials" />
-        <link rel="preconnect" href="https://ssl.gstatic.com" crossOrigin="use-credentials" />
-        <link rel="preconnect" href="https://apis.google.com" crossOrigin="use-credentials" />
+        <link rel="preconnect" href="https://apis.google.com" />
+        <link rel="preconnect" href="https://ssl.gstatic.com" />
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" />
       </Helmet>
       <UpdateHash filter={element => element.tagName.toLowerCase() === "h2"} />
       <TopBar title={<code>{title}</code>} logo={logo} />

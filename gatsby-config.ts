@@ -16,14 +16,22 @@ export const plugins: unknown[] = [
     },
   },
   {
-    resolve: "gatsby-plugin-google-fonts",
+    resolve: "gatsby-plugin-prefetch-google-fonts",
     options: {
       fonts: [
-        "Open Sans:300,300i,400,400i,500,500i,700,700i",
-        "Overpass:400,500,700,900",
-        "Source Code Pro:400,500,700",
+        {
+          family: "Open Sans",
+          variants: ["300", "300i", "400", "400i", "500", "500i", "700", "700i"],
+        },
+        {
+          family: "Overpass",
+          variants: ["400", "500", "700"],
+        },
+        {
+          family: "Source Code Pro",
+          variants: ["400", "500", "700"],
+        },
       ],
-      display: "swap",
     },
   },
   {
@@ -67,14 +75,16 @@ export const plugins: unknown[] = [
   },
 ]
 if (process.env.THEME_DEVELOPMENT) {
-  plugins.push({
-    resolve: "gatsby-alias-imports",
-    options: {
-      aliases: {
-        react: "./node_modules/react",
-        "@cs125/element-tracker": "../element-tracker/",
+  plugins.push(
+    {
+      resolve: "gatsby-alias-imports",
+      options: {
+        aliases: {
+          react: "./node_modules/react",
+          "@cs125/element-tracker": "../element-tracker/",
+        },
       },
     },
-  })
-  plugins.push("gatsby-plugin-webpack-bundle-analyser-v2")
+    "gatsby-plugin-webpack-bundle-analyser-v2"
+  )
 }
