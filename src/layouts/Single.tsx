@@ -29,6 +29,7 @@ export const Single: React.FC<SingleProps> = ({ title, description, logo, childr
         <meta charSet="utf-8" />
         <title>{title}</title>
         <meta name="description" content={description} />
+        <script async defer src="https://apis.google.com/js/platform.js" />
         <link rel="preconnect" href="https://fonts.gstatic.com" />
         <link rel="preconnect" href="https://accounts.google.com" crossOrigin="use-credentials" />
         <link rel="preconnect" href="https://apis.google.com" />

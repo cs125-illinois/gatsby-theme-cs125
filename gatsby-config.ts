@@ -82,6 +82,7 @@ if (process.env.THEME_DEVELOPMENT) {
         aliases: {
           react: "./node_modules/react",
           "@cs125/element-tracker": "../element-tracker/",
+          "@cs125/react-google-login": "../react-google-login",
         },
       },
     },

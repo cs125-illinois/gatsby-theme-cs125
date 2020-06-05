@@ -1,13 +1,18 @@
-import React, { useState, useCallback, useEffect } from "react"
+import React, { useCallback } from "react"
 import PropTypes from "prop-types"
 
 import { useGoogleLogin } from "@cs125/react-google-login"
 
-import { Button, ButtonProps, makeStyles, CircularProgress, useTheme } from "@material-ui/core"
-import { Google } from "mdi-material-ui"
-import { Error, ExitToApp } from "@material-ui/icons"
+import Button, { ButtonProps } from "@material-ui/core/Button"
+import makeStyles from "@material-ui/core/styles/makeStyles"
+import CircularProgress from "@material-ui/core/CircularProgress"
+import useTheme from "@material-ui/core/styles/useTheme"
 
-import { grey } from "@material-ui/core/colors"
+import Google from "mdi-material-ui/Google"
+import Error from "@material-ui/icons/Error"
+import ExitToApp from "@material-ui/icons/ExitToApp"
+
+import grey from "@material-ui/core/colors/grey"
 
 const useStyles = makeStyles(theme => ({
   wrapper: {
@@ -61,7 +66,7 @@ export interface LoginButtonProps extends ButtonProps {
   iconOnly?: boolean
 }
 export const LoginButton: React.FC<LoginButtonProps> = ({ iconOnly = false, ...props }) => {
-  const { ready, auth, isSignedIn, err, lastLogin, loggingIn, setLoggingIn } = useGoogleLogin()
+  const { ready, auth, isSignedIn, err, loggingIn, setLoggingIn } = useGoogleLogin()
   const classes = useStyles()
   const theme = useTheme()
 
@@ -80,24 +85,16 @@ export const LoginButton: React.FC<LoginButtonProps> = ({ iconOnly = false, ...p
     [auth, setLoggingIn]
   )
 
-  const [showLoading, setShowLoading] = useState<boolean>(false)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowLoading(true)
-    }, 1000)
-    return () => {
-      clearTimeout(timer)
-    }
-  }, [])
-
-  const loading = !err && (!ready || loggingIn)
   let content,
     disabled = false,
     className
   if (err !== undefined) {
     content = iconOnly ? <Error /> : <div>Error</div>
     disabled = true
-  } else if ((!ready && lastLogin === undefined) || (ready && !isSignedIn)) {
+  } else if (!ready) {
+    content = <div></div>
+    disabled = true
+  } else if (!isSignedIn) {
     content = iconOnly ? (
       <Google fontSize={"inherit"} />
     ) : (
@@ -129,7 +126,9 @@ export const LoginButton: React.FC<LoginButtonProps> = ({ iconOnly = false, ...p
       >
         {content}
       </Button>
-      {loading && showLoading && <CircularProgress size={theme.spacing(3)} thickness={5} className={classes.loading} />}
+      {(loggingIn || (!ready && !err)) && (
+        <CircularProgress size={theme.spacing(3)} thickness={5} className={classes.loading} />
+      )}
     </div>
   )
 }
