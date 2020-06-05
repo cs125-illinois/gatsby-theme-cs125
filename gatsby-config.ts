@@ -76,4 +76,5 @@ if (process.env.THEME_DEVELOPMENT) {
       },
     },
   })
+  plugins.push("gatsby-plugin-webpack-bundle-analyser-v2")
 }
