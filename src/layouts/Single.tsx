@@ -2,7 +2,7 @@ import React, { ReactNode } from "react"
 import PropTypes from "prop-types"
 
 import { ThemeProvider } from "../material-ui"
-import { CssBaseline } from "@material-ui/core"
+import CssBaseline from "@material-ui/core/CssBaseline"
 import { ElementTracker, UpdateHash } from "@cs125/element-tracker"
 import { SavePosition } from "../gatsby/SavePosition"
 import { Helmet } from "react-helmet"

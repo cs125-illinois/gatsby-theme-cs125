@@ -1,8 +1,9 @@
 import React, { ReactNode, useState, Suspense } from "react"
 import PropTypes from "prop-types"
 
-import { makeStyles, useTheme } from "@material-ui/core"
-import { Skeleton } from "@material-ui/lab"
+import makeStyles from "@material-ui/core/styles/makeStyles"
+import useTheme from "@material-ui/core/styles/useTheme"
+import Skeleton from "@material-ui/lab/Skeleton"
 
 import Children from "react-children-utilities"
 

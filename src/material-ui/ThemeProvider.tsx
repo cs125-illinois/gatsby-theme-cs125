@@ -1,7 +1,8 @@
 import React, { useRef, useState, useCallback, useContext } from "react"
 import PropTypes from "prop-types"
 
-import { ThemeProvider as MuiThemeProvider, useMediaQuery } from "@material-ui/core"
+import { ThemeProvider as MuiThemeProvider } from "@material-ui/core/styles/"
+import useMediaQuery from "@material-ui/core/useMediaQuery"
 
 import { light, dark } from "./theme"
 

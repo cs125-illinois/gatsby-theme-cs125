@@ -4,7 +4,7 @@ import PropTypes from "prop-types"
 import slugify from "slugify"
 import Children from "react-children-utilities"
 
-import { useTheme } from "@material-ui/core"
+import useTheme from "@material-ui/core/styles/useTheme"
 import { topBarHeight } from "../material-ui/TopBar"
 import { headings as MuiHeadings } from "../material-ui/Typography"
 

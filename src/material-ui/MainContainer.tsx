@@ -1,7 +1,8 @@
 import React from "react"
 import PropTypes from "prop-types"
 
-import { ContainerProps, Container, makeStyles } from "@material-ui/core"
+import Container, { ContainerProps } from "@material-ui/core/Container"
+import makeStyles from "@material-ui/core/styles/makeStyles"
 import { topBarHeight } from "./TopBar"
 
 const useStyles = makeStyles(theme => ({

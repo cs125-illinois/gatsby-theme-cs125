@@ -1,7 +1,8 @@
 import React, { CSSProperties, ReactNode, useMemo } from "react"
 import PropTypes from "prop-types"
 
-import { makeStyles, useTheme } from "@material-ui/core"
+import makeStyles from "@material-ui/core/styles/makeStyles"
+import useTheme from "@material-ui/core/styles/useTheme"
 import { Breakpoint } from "@material-ui/core/styles/createBreakpoints"
 import { MinWidth } from "./MinWidth"
 

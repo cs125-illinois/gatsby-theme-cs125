@@ -6,9 +6,13 @@ import { IAceEditor } from "react-ace/lib/types"
 
 import { Record, String, Partial, Static, Number, Array, Union, Literal } from "runtypes"
 import { AceProps, Ace } from "../react-ace/Ace"
-import { IconButton, useTheme, makeStyles, CircularProgress } from "@material-ui/core"
-import { Album } from "@material-ui/icons/"
-import { red } from "@material-ui/core/colors"
+import IconButton from "@material-ui/core/IconButton"
+import useTheme from "@material-ui/core/styles/useTheme"
+import makeStyles from "@material-ui/core/styles/makeStyles"
+import CircularProgress from "@material-ui/core/CircularProgress"
+
+import Album from "@material-ui/icons/Album"
+import red from "@material-ui/core/colors/red"
 
 import { throttle } from "throttle-debounce"
 

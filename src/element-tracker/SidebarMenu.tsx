@@ -2,7 +2,11 @@ import React, { useState, useLayoutEffect } from "react"
 import PropTypes from "prop-types"
 
 import { useElementTracker, active } from "@cs125/element-tracker"
-import { List, ListItem, Typography, makeStyles } from "@material-ui/core"
+
+import List from "@material-ui/core/List"
+import ListItem from "@material-ui/core/ListItem"
+import Typography from "@material-ui/core/Typography"
+import makeStyles from "@material-ui/core/styles/makeStyles"
 
 const useStyles = makeStyles(theme => ({
   list: {
