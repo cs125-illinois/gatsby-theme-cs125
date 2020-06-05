@@ -49,6 +49,12 @@ const Delta = Record({
 )
 type Delta = Static<typeof Delta>
 
+const Selection = Record({
+  start: EditorLocation,
+  end: EditorLocation,
+})
+type Selection = Static<typeof Selection>
+
 const SelectionChange = Record({
   type: Literal("selectionchange"),
   timestamp: String.withConstraint(s => Date.parse(s) !== NaN),
@@ -57,12 +63,11 @@ const SelectionChange = Record({
 })
 type SelectionChange = Static<typeof SelectionChange>
 
-const CursorChange = Record({
-  type: Literal("cursorchange"),
-  timestamp: String.withConstraint(s => Date.parse(s) !== NaN),
-  location: EditorLocation,
+const ScrollPosition = Record({
+  top: Number,
+  left: Number,
 })
-type CursorChange = Static<typeof CursorChange>
+type ScrollPosition = Static<typeof ScrollPosition>
 
 const ScrollChange = Record({
   type: Literal("scrollchange"),
@@ -72,7 +77,7 @@ const ScrollChange = Record({
 })
 type ScrollChange = Static<typeof ScrollChange>
 
-const Records = Union(Complete, Delta, SelectionChange, CursorChange, ScrollChange)
+const Records = Union(Complete, Delta, SelectionChange, ScrollChange)
 type Records = Static<typeof Records>
 
 const fullAceSnapshot = (editor: IAceEditor, location: string): Complete =>
@@ -91,34 +96,60 @@ const fullAceSnapshot = (editor: IAceEditor, location: string): Complete =>
 const recordAce: (editor: IAceEditor) => () => Records[] = editor => {
   const records: Records[] = [fullAceSnapshot(editor, "start")]
 
+  let lastValue = editor.getValue()
   const changeListener = (delta: { [key: string]: unknown }) => {
+    if (editor.getValue() === lastValue) {
+      return
+    }
+    lastValue = editor.getValue()
     records.push(Delta.check({ ...delta, type: "delta", timestamp: new Date().toISOString() }))
   }
+
+  let lastSelection = Selection.check(editor.selection.getRange())
   const selectionListener = () => {
+    const selection = Selection.check(editor.selection.getRange())
+    if (
+      selection.start.column === lastSelection.start.column &&
+      selection.start.row === lastSelection.start.row &&
+      selection.end.column === lastSelection.end.column &&
+      selection.end.row === lastSelection.end.row
+    ) {
+      return
+    }
+
+    const cursor = editor.selection.getCursor()
+    if (
+      selection.start.column === selection.end.column &&
+      selection.end.row === selection.end.row &&
+      selection.start.column === cursor.column &&
+      selection.start.row === cursor.row
+    ) {
+      return
+    }
+
+    lastSelection = selection
+
     records.push(
       SelectionChange.check({
         type: "selectionchange",
         timestamp: new Date().toISOString(),
-        ...editor.selection.getRange(),
+        ...selection,
       })
     )
   }
-  const cursorListener = () => {
-    records.push(
-      CursorChange.check({
-        type: "cursorchange",
-        timestamp: new Date().toISOString(),
-        location: editor.selection.getCursor(),
-      })
-    )
-  }
+
+  let lastScroll = ScrollPosition.check({ top: editor.renderer.getScrollTop(), left: editor.renderer.getScrollLeft() })
   const scrollListener = throttle(100, () => {
+    const scroll = ScrollPosition.check({ top: editor.renderer.getScrollTop(), left: editor.renderer.getScrollLeft() })
+    if (scroll.top === lastScroll.top && scroll.left === lastScroll.left) {
+      return
+    }
+    lastScroll = scroll
     records.push(
       ScrollChange.check({
         type: "scrollchange",
         timestamp: new Date().toISOString(),
-        top: editor.renderer.getScrollTop(),
-        left: editor.renderer.getScrollLeft(),
+        ...scroll,
       })
     )
   })
@@ -126,15 +157,13 @@ const recordAce: (editor: IAceEditor) => () => Records[] = editor => {
   const timer = setInterval(() => {
     records.push(fullAceSnapshot(editor, "internal"))
   }, 1000)
-  editor.addEventListener("change", changeListener)
+  editor.session.addEventListener("change", changeListener)
   editor.addEventListener("changeSelection", selectionListener)
-  editor.addEventListener("changeCursor", cursorListener)
   editor.session.addEventListener("changeScrollTop", scrollListener)
   return () => {
     clearInterval(timer)
-    editor.removeEventListener("change", changeListener)
+    editor.session.removeEventListener("change", changeListener)
     editor.removeEventListener("changeSelection", selectionListener)
-    editor.removeEventListener("changeCursor", cursorListener)
     editor.session.removeEventListener("changeScrollTop", scrollListener)
 
     records.push(fullAceSnapshot(editor, "end"))
@@ -154,12 +183,21 @@ const replayAce: (editor: IAceEditor, trace: Records[], options?: { start: numbe
 ) => {
   const acePlayer: AcePlayer = {} as AcePlayer
 
-  const wasReadOnly = editor.getReadOnly()
-  editor.setReadOnly(true)
-
   let cancelled = false
   acePlayer.promise = new Promise(async resolve => {
     const { start } = options
+
+    const wasReadOnly = editor.getReadOnly()
+    editor.setReadOnly(true)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const renderer = editor.renderer as any
+    const wasVisible = renderer.$cursorLayer.isVisible
+    renderer.$cursorLayer.isVisible = true
+    const wasBlinking = renderer.$cursorLayer.isBlinking
+    renderer.$cursorLayer.setBlinking(true)
+    const previousOpacity = renderer.$cursorLayer.element.style.opacity
+    renderer.$cursorLayer.element.style.opacity = 1
 
     const startTime = new Date().valueOf()
     const traceStartTime = Date.parse(trace[0].timestamp).valueOf()
@@ -184,6 +222,7 @@ const replayAce: (editor: IAceEditor, trace: Records[], options?: { start: numbe
         }
         const { row, column } = record.cursor
         editor.selection.moveCursorTo(row, column)
+        editor.selection.setSelectionRange({ start: { row, column }, end: { row, column } })
         const { top, left } = record.scroll
         editor.renderer.scrollToY(top)
         editor.renderer.scrollToX(left)
@@ -191,9 +230,6 @@ const replayAce: (editor: IAceEditor, trace: Records[], options?: { start: numbe
         editor.session.getDocument().applyDelta(record)
       } else if (SelectionChange.guard(record)) {
         editor.selection.setSelectionRange(record)
-      } else if (CursorChange.guard(record)) {
-        const { row, column } = record.location
-        editor.selection.moveCursorTo(row, column)
       } else if (ScrollChange.guard(record)) {
         const { top, left } = record
         editor.renderer.scrollToY(top)
@@ -211,6 +247,11 @@ const replayAce: (editor: IAceEditor, trace: Records[], options?: { start: numbe
     }
 
     editor.setReadOnly(wasReadOnly)
+
+    renderer.$cursorLayer.isVisible = wasVisible
+    renderer.$cursorLayer.setBlinking(wasBlinking)
+    renderer.$cursorLayer.element.style.opacity = previousOpacity
+
     resolve()
   })
   acePlayer.cancel = () => {
@@ -278,6 +319,7 @@ export const Race: React.FC<AceProps> = props => {
         console.error(err)
         return
       }
+      setEditorTrace([])
       audioRecorder.current.start()
       aceRecorder.current = recordAce(editor.current)
     } else if (aceRecorder.current && audioRecorder.current) {
@@ -334,7 +376,6 @@ export const AceReplayer: React.FC<AceReplayerProps> = ({ aceTrace, editor }) =>
     if (!audioPlayer.current) {
       return
     }
-    console.log(audioPlayer.current.currentTime)
     playingTrace.current && playingTrace.current.cancel()
     playingTrace.current = replayAce(editor, aceTrace.editorTrace, {
       start: Math.round(audioPlayer.current.currentTime * 1000),

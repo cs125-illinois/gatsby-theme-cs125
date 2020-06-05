@@ -150,17 +150,19 @@ export const Ace: React.FC<AceProps> = ({
                   editor.moveCursorTo(initialCursorPosition[0], initialCursorPosition[1])
                 }
                 editor.setHighlightActiveLine(false)
-                editor.clearSelection()
                 props.onLoad && props.onLoad(editor)
                 setShowPlaceholder(false)
               }}
               onFocus={(event, editor: IAceEditor | undefined) => {
+                console.log(editor?.selection.getRange())
                 editor?.setHighlightActiveLine(props.highlightActiveLine || true)
                 props.onFocus && props.onFocus(event, editor)
               }}
               onBlur={(event, editor: IAceEditor | undefined) => {
                 if (clickOut) {
                   if (document.activeElement != editor?.textInput.getElement()) {
+                    const { row, column } = editor?.selection.getCursor() as { row: number; column: number }
+                    editor?.selection.setSelectionRange({ start: { row, column }, end: { row, column } })
                     editor?.clearSelection()
                   }
                 }
@@ -182,11 +184,22 @@ export const Ace: React.FC<AceProps> = ({
 }
 Ace.propTypes = {
   clickOut: PropTypes.bool,
+  displayOnly: PropTypes.bool,
   initialCursorPosition: PropTypes.arrayOf(PropTypes.number.isRequired),
   overlays: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node.isRequired), PropTypes.node.isRequired]),
   lineHeight: PropTypes.string,
+  commands: PropTypes.arrayOf(PropTypes.any.isRequired),
+  setOptions: PropTypes.any,
+  defaultValue: PropTypes.string,
+  mode: PropTypes.string,
+  theme: PropTypes.string,
+  showPrintMargin: PropTypes.bool,
+  highlightActiveLine: PropTypes.bool,
+  onBeforeLoad: PropTypes.func,
+  onLoad: PropTypes.func,
+  onFocus: PropTypes.func,
+  onBlur: PropTypes.func,
   children: PropTypes.node,
-  ...AceEditor.propTypes,
 }
 Ace.defaultProps = {
   clickOut: true,
