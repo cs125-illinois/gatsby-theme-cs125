@@ -19,7 +19,7 @@ import css from "./AceSSR.css"
 
 const ssrPostfix = "___ssr"
 export const hasAceSSR = (id: string): boolean =>
-  typeof window !== "undefined" && document.getElementById(`${id}${ssrPostfix}`) !== undefined
+  typeof window !== "undefined" && document.getElementById(`${id}${ssrPostfix}`) !== null
 
 /* eslint-enable no-var,@typescript-eslint/no-var-requires */
 

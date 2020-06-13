@@ -113,6 +113,7 @@ export const Ace: React.FC<AceProps> = ({
     <div className={`${classes.wrapper} ${displayOnly ? "ace_display_only" : ""}`.trim()}>
       <AceSSR
         id={id}
+        numbers={numbers}
         gutterWidth={`${gutterWidth + muiTheme.spacing(1) + 2}px`}
         mode={props.mode as string}
         theme={theme}
