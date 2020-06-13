@@ -11,7 +11,9 @@ const AceEditor = React.lazy(() => import("react-ace"))
 import { IAceEditorProps, ICommand } from "react-ace"
 import { IAceEditor } from "react-ace/lib/types"
 
-const isSSR = typeof window === "undefined"
+import { AceSSR } from "."
+import { hasAceSSR } from "./AceSSR"
+const SSR = typeof window === "undefined"
 
 const useStyles = makeStyles(theme => ({
   "@global": {
@@ -43,7 +45,7 @@ const useStyles = makeStyles(theme => ({
     marginBottom: theme.spacing(2),
   },
   editor: {
-    fontFamily: "Source Code Pro, monospace",
+    fontFamily: "Source Code Pro, monospace!important",
     backgroundColor: `rgba(0,0,0,0)!important`,
     background: "none!important",
     lineHeight: "1.4em!important",
@@ -60,6 +62,8 @@ const DISABLED_COMMANDS = [
 ] as ICommand[]
 
 export interface AceProps extends IAceEditorProps {
+  id?: string
+  numbers?: string
   clickOut?: boolean
   displayOnly?: boolean
   initialCursorPosition?: number[]
@@ -68,6 +72,7 @@ export interface AceProps extends IAceEditorProps {
   children?: ReactNode
 }
 export const Ace: React.FC<AceProps> = ({
+  id,
   clickOut = true,
   displayOnly,
   initialCursorPosition,
@@ -91,7 +96,6 @@ export const Ace: React.FC<AceProps> = ({
       : props.defaultValue
 
   displayOnly = displayOnly !== undefined ? displayOnly : !(props.mode === "java" || props.mode === "kotlin")
-
   const showPrintMargin = displayOnly ? false : props.showPrintMargin
   if (displayOnly) {
     setOptions.readOnly = true
@@ -100,18 +104,38 @@ export const Ace: React.FC<AceProps> = ({
     setOptions.fixedWidthGutter = true
   }
 
+  const numbers = props.numbers !== undefined ? props.numbers === "true" : !displayOnly
+
   const theme = props.theme || muiTheme.palette.type === "light" ? "chrome" : "tomorrow_night"
+
+  const haveSSR = id && hasAceSSR(id)
+  const SSRContent = (SSR || haveSSR) && id && (
+    <div className={`${classes.wrapper} ${displayOnly ? "ace_display_only" : ""}`.trim()}>
+      <AceSSR
+        id={id}
+        gutterWidth={`${gutterWidth + muiTheme.spacing(1) + 2}px`}
+        mode={props.mode as string}
+        theme={theme}
+        lineHeight={"1.4rem"}
+        fontSize={props.fontSize}
+        defaultValue={defaultValue}
+        className={classes.editor}
+      />
+    </div>
+  )
+
   return (
     <>
-      {showPlaceholder && (
-        <Skeleton
-          className={classes.skeleton}
-          height={`calc(${(defaultValue?.split("\n").length || 0) * 1.4}rem + ${muiTheme.spacing(2)} * 2px)`}
-          variant={"rect"}
-          style={{ display: showPlaceholder ? "block" : "none" }}
-        />
-      )}
-      {!isSSR && (
+      {showPlaceholder &&
+        (SSRContent || (
+          <Skeleton
+            className={classes.skeleton}
+            height={`calc(${(defaultValue?.split("\n").length || 0) * 1.4}rem + ${muiTheme.spacing(2)} * 2px)`}
+            variant={"rect"}
+            style={{ display: showPlaceholder ? "block" : "none" }}
+          />
+        ))}
+      {!SSR && !(haveSSR && displayOnly) && (
         <Suspense fallback={<div></div>}>
           <div
             className={`${classes.wrapper} ${displayOnly ? "ace_display_only" : ""}`.trim()}
@@ -144,7 +168,7 @@ export const Ace: React.FC<AceProps> = ({
                     return gutterWidth
                   },
                   getText: function (session: { $firstLineNumber: number }, row: number) {
-                    return displayOnly ? "" : session.$firstLineNumber + row
+                    return !numbers ? "" : session.$firstLineNumber + row
                   },
                 }
                 if (!displayOnly && initialCursorPosition) {
@@ -184,6 +208,7 @@ export const Ace: React.FC<AceProps> = ({
   )
 }
 Ace.propTypes = {
+  id: PropTypes.string,
   clickOut: PropTypes.bool,
   displayOnly: PropTypes.bool,
   initialCursorPosition: PropTypes.arrayOf(PropTypes.number.isRequired),
@@ -201,6 +226,8 @@ Ace.propTypes = {
   onFocus: PropTypes.func,
   onBlur: PropTypes.func,
   children: PropTypes.node,
+  fontSize: PropTypes.any,
+  numbers: PropTypes.string,
 }
 Ace.defaultProps = {
   clickOut: true,

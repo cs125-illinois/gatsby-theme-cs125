@@ -1,19 +1,17 @@
-import React, { ReactNode } from "react"
+import React from "react"
 import PropTypes from "prop-types"
 
 import { Ace } from "../react-ace"
 
 export interface CodeProps {
   className?: string
-  children: ReactNode
 }
-export const Code: React.FC<CodeProps> = ({ className, children }) => {
+export const Code: React.FC<CodeProps> = ({ className, ...props }) => {
   const mode = className?.replace(/language-/, "") || ""
-  return <Ace mode={mode}>{children}</Ace>
+  return <Ace mode={mode} {...props} />
 }
 Code.propTypes = {
   className: PropTypes.string,
-  children: PropTypes.node.isRequired,
 }
 
 export interface PreProps {

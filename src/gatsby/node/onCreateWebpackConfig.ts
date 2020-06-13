@@ -5,10 +5,7 @@ export const onCreateWebpackConfig: GatsbyNode["onCreateWebpackConfig"] = async 
   actions,
 }: CreateWebpackConfigArgs) => {
   const config = getConfig()
-  const ourExternals = {
-    jsdom: "jsdom",
-    cheerio: "cheerio",
-  }
-  const externals = config.externals ? [ourExternals, ...config.externals] : ourExternals
+  const ourExternals = [/jsdom/, /cheerio/]
+  const externals = config.externals ? [...ourExternals, ...config.externals] : ourExternals
   actions.setWebpackConfig({ externals })
 }
