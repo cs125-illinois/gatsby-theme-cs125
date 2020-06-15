@@ -111,6 +111,18 @@ export const Ace: React.FC<AceProps> = ({
   const haveSSR = id && hasAceSSR(id)
   const SSRContent = (SSR || haveSSR) && id && (
     <div className={`${classes.wrapper} ${displayOnly ? "ace_display_only" : ""}`.trim()}>
+      {!displayOnly && (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: gutterWidth + muiTheme.spacing(1) + 2,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.05)",
+          }}
+        />
+      )}
       <AceSSR
         id={id}
         numbers={numbers}
@@ -136,7 +148,7 @@ export const Ace: React.FC<AceProps> = ({
             style={{ display: showPlaceholder ? "block" : "none" }}
           />
         ))}
-      {!SSR && !(haveSSR && displayOnly) && (
+      {!SSR && (
         <Suspense fallback={<div></div>}>
           <div
             className={`${classes.wrapper} ${displayOnly ? "ace_display_only" : ""}`.trim()}

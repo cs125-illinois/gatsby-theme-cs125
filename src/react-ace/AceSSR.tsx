@@ -9,13 +9,13 @@ if (SSR) {
   const jsdom = new JSDOM("<!doctype html><html><body></body></html>")
   global.window = jsdom.window
 
-  var ace = require("ace-builds/src-noconflict/ace")
+  var ace = require("ace-builds")
   var parseUnit = require("parse-unit")
   var cheerio = require("cheerio")
 
   delete global.window
 }
-import css from "./AceSSR.css"
+import "./AceSSR.scss"
 
 const ssrPostfix = "___ssr"
 export const hasAceSSR = (id: string): boolean =>
@@ -177,7 +177,6 @@ export const AceSSR: React.FC<AceSSRProps> = ({
 
     return (
       <div id={ssrID}>
-        <style dangerouslySetInnerHTML={{ __html: css }} />
         {themeCSS && <style dangerouslySetInnerHTML={{ __html: themeCSS }} />}
         <div
           style={{
