@@ -10,11 +10,12 @@ if (SSR) {
   global.window = jsdom.window
 
   var ace = require("ace-builds")
-  var parseUnit = require("parse-unit")
   var cheerio = require("cheerio")
+  var parseUnit = require("parse-unit")
 
   delete global.window
 }
+
 import "./AceSSR.scss"
 
 const ssrPostfix = "___ssr"
@@ -119,7 +120,8 @@ export const AceSSR: React.FC<AceSSRProps> = ({
     delete global.document
 
     const $ = cheerio.load(editorElement.outerHTML)
-    $("div").each(function (_: number, elem: CheerioElement) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    $("div").each(function (_: never, elem: any) {
       if ($(elem).css("visibility") === "hidden") {
         $(elem).remove()
         return
@@ -129,7 +131,8 @@ export const AceSSR: React.FC<AceSSRProps> = ({
         $(elem).css("height", "")
       }
     })
-    $("span").each(function (_: number, elem: CheerioElement) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    $("span").each(function (_: never, elem: any) {
       if ($(elem).css("display") === "none") {
         $(elem).remove()
       }
@@ -150,7 +153,8 @@ export const AceSSR: React.FC<AceSSRProps> = ({
     $(".ace_gutter, .ace_gutter-layer").css("width", props.gutterWidth)
     $("textarea").remove()
 
-    $(".ace_gutter-cell, .ace_line").each(function (_: number, elem: CheerioElement) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    $(".ace_gutter-cell, .ace_line").each(function (_: never, elem: any) {
       const [heightNumber, heightUnit] = parseUnit($(elem).css("height"))
       const [topNumber, topUnit] = parseUnit($(elem).css("top"))
       if (heightNumber % 100 !== 0 || heightUnit !== "px" || topNumber % 100 !== 0 || topUnit !== "px") {
@@ -160,7 +164,8 @@ export const AceSSR: React.FC<AceSSRProps> = ({
       const multiplier = Math.floor(topNumber / 100)
       $(elem).css("top", `${multiplier * lineHeightNumber}${lineHeightUnit}`)
     })
-    $(".ace_line").each(function (_: number, elem: CheerioElement) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    $(".ace_line").each(function (_: never, elem: any) {
       $(elem).append("<br>")
     })
 
@@ -171,7 +176,8 @@ export const AceSSR: React.FC<AceSSRProps> = ({
       "height",
       `${contentHeightInLines * lineHeightNumber}${lineHeightUnit}`
     )
-    $(".ace_content").each(function (_: number, elem: CheerioElement) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    $(".ace_content").each(function (_: never, elem: any) {
       elem.tagName = "code"
     })
 
