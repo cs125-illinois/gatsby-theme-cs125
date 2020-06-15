@@ -126,7 +126,7 @@ export const Ace: React.FC<AceProps> = ({
       <AceSSR
         id={id}
         numbers={numbers}
-        gutterWidth={`${gutterWidth + muiTheme.spacing(1) + 2}px`}
+        gutterWidth={`${gutterWidth + muiTheme.spacing(1) + 1}px`}
         mode={props.mode as string}
         theme={theme}
         lineHeight={"1.4rem"}
@@ -188,12 +188,13 @@ export const Ace: React.FC<AceProps> = ({
                   editor.moveCursorTo(initialCursorPosition[0], initialCursorPosition[1])
                 }
                 editor.setHighlightActiveLine(false)
+                editor.setHighlightGutterLine(false)
                 props.onLoad && props.onLoad(editor)
                 setShowPlaceholder(false)
               }}
               onFocus={(event, editor: IAceEditor | undefined) => {
-                console.log(editor?.selection.getRange())
-                editor?.setHighlightActiveLine(props.highlightActiveLine || true)
+                !displayOnly && editor?.setHighlightActiveLine(props.highlightActiveLine || true)
+                !displayOnly && editor?.setHighlightGutterLine(props.highlightActiveLine || true)
                 props.onFocus && props.onFocus(event, editor)
               }}
               onBlur={(event, editor: IAceEditor | undefined) => {
@@ -205,6 +206,7 @@ export const Ace: React.FC<AceProps> = ({
                   }
                 }
                 editor?.setHighlightActiveLine(false)
+                editor?.setHighlightGutterLine(false)
                 props.onBlur && props.onBlur(event, editor)
               }}
               commands={commands}
