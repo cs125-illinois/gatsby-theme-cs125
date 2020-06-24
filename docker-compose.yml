@@ -9,6 +9,15 @@ services:
     environment:
       - "MONGODB=mongodb://mongodb/demo"
       - "GOOGLE_CLIENT_IDS=${GOOGLE_CLIENT_ID}"
+  mace:
+    image: "cs125/mace:latest"
+    depends_on:
+      - mongodb
+    ports:
+      - "8889:8888"
+    environment:
+      - "MONGODB=mongodb://mongodb/demo"
+      - "GOOGLE_CLIENT_IDS=${GOOGLE_CLIENT_ID}"
   mongodb:
     image: "bitnami/mongodb:4.0"
     ports:

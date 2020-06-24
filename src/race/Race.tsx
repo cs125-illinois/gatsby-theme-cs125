@@ -337,7 +337,7 @@ export const Race: React.FC<AceProps> = props => {
     <>
       <Ace
         {...props}
-        overlays={
+        overlays={[
           canRecord && (
             <div className={classes.wrapper}>
               <IconButton className={classes.button} onClick={toggleRecording}>
@@ -345,8 +345,8 @@ export const Race: React.FC<AceProps> = props => {
               </IconButton>
               {recording && <CircularProgress disableShrink size={theme.spacing(3)} className={classes.loading} />}
             </div>
-          )
-        }
+          ),
+        ]}
         onLoad={e => {
           editor.current = e
           props.onLoad && props.onLoad(e)

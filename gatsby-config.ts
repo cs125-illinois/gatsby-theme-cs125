@@ -83,6 +83,7 @@ if (process.env.THEME_DEVELOPMENT) {
           react: "./node_modules/react",
           "@cs125/element-tracker": "../element-tracker/",
           "@cs125/react-google-login": "../react-google-login",
+          "@cs125/mace": "../mace",
         },
       },
     },

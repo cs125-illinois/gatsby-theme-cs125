@@ -1,4 +1,4 @@
-import React, { ReactNode, useState, Suspense } from "react"
+import React, { ReactNode, useState, Suspense, useRef } from "react"
 import PropTypes from "prop-types"
 
 import makeStyles from "@material-ui/core/styles/makeStyles"
@@ -14,6 +14,14 @@ import { IAceEditor } from "react-ace/lib/types"
 import { AceSSR } from "."
 import { hasAceSSR } from "./AceSSR"
 const SSR = typeof window === "undefined"
+
+import { mace, useMace } from "@cs125/mace"
+import { debounce } from "throttle-debounce"
+
+import CheckCircle from "@material-ui/icons/CheckCircle"
+import CircularProgress from "@material-ui/core/CircularProgress"
+import green from "@material-ui/core/colors/green"
+import Tooltip from "@material-ui/core/Tooltip"
 
 const useStyles = makeStyles(theme => ({
   "@global": {
@@ -50,6 +58,24 @@ const useStyles = makeStyles(theme => ({
     background: "none!important",
     lineHeight: "1.4em!important",
   },
+  saveWrapper: {
+    position: "absolute",
+    top: 2,
+    right: 2,
+  },
+  save: {
+    color: green[400],
+    fontSize: theme.spacing(2),
+  },
+  saving: {
+    position: "absolute",
+    top: 2,
+    left: 0,
+    color: green.A700,
+  },
+  savingTooltipPosition: {
+    margin: 0,
+  },
 }))
 
 const DISABLED_COMMANDS = [
@@ -67,8 +93,8 @@ export interface AceProps extends IAceEditorProps {
   clickOut?: boolean
   displayOnly?: boolean
   initialCursorPosition?: number[]
-  overlays?: ReactNode[] | ReactNode
-  lineHeight?: string
+  overlays?: ReactNode[]
+  noMaceServer?: boolean
   children?: ReactNode
 }
 export const Ace: React.FC<AceProps> = ({
@@ -77,9 +103,11 @@ export const Ace: React.FC<AceProps> = ({
   displayOnly,
   initialCursorPosition,
   overlays = [],
+  noMaceServer = false,
   children,
   ...props
 }) => {
+  const maceContext = useMace()
   const [showPlaceholder, setShowPlaceholder] = useState(true)
 
   const classes = useStyles()
@@ -137,6 +165,29 @@ export const Ace: React.FC<AceProps> = ({
     </div>
   )
 
+  const [saving, setSaving] = useState(false)
+  const startSavingTimer = useRef<ReturnType<typeof setTimeout> | undefined>()
+
+  const saver = useRef<() => void | undefined>()
+
+  const connectMace = !displayOnly && id !== undefined
+  if (connectMace) {
+    overlays.push(
+      <div className={classes.saveWrapper}>
+        <Tooltip
+          title={saving ? "Saving" : "Saved"}
+          placement="right"
+          classes={{ tooltipPlacementRight: classes.savingTooltipPosition }}
+        >
+          <div>
+            <CheckCircle className={classes.save} />
+            {saving && <CircularProgress className={classes.saving} disableShrink size={muiTheme.spacing(2)} />}
+          </div>
+        </Tooltip>
+      </div>
+    )
+  }
+
   return (
     <>
       {showPlaceholder &&
@@ -187,6 +238,32 @@ export const Ace: React.FC<AceProps> = ({
                 if (!displayOnly && initialCursorPosition) {
                   editor.moveCursorTo(initialCursorPosition[0], initialCursorPosition[1])
                 }
+                if (connectMace && id) {
+                  const save = mace({
+                    editor,
+                    context: maceContext,
+                    id,
+                    onUpdate: () => {
+                      saver.current && saver.current()
+                    },
+                    onSelectionChange: () => {
+                      saver.current && saver.current()
+                    },
+                    saveCompleted: () => {
+                      startSavingTimer.current && clearTimeout(startSavingTimer.current)
+                      setSaving(false)
+                    },
+                  })
+                  saver.current = debounce(1000, () => {
+                    setTimeout(() => {
+                      startSavingTimer.current && clearTimeout(startSavingTimer.current)
+                      startSavingTimer.current = setTimeout(() => {
+                        setSaving(true)
+                      }, 1000)
+                    })
+                    save(!noMaceServer)
+                  })
+                }
                 editor.setHighlightActiveLine(false)
                 editor.setHighlightGutterLine(false)
                 props.onLoad && props.onLoad(editor)
@@ -226,9 +303,8 @@ Ace.propTypes = {
   id: PropTypes.string,
   clickOut: PropTypes.bool,
   displayOnly: PropTypes.bool,
-  initialCursorPosition: PropTypes.arrayOf(PropTypes.number.isRequired),
-  overlays: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.node.isRequired), PropTypes.node.isRequired]),
-  lineHeight: PropTypes.string,
+  initialCursorPosition: PropTypes.array,
+  overlays: PropTypes.array,
   commands: PropTypes.arrayOf(PropTypes.any.isRequired),
   setOptions: PropTypes.any,
   defaultValue: PropTypes.string,
@@ -243,6 +319,7 @@ Ace.propTypes = {
   children: PropTypes.node,
   fontSize: PropTypes.any,
   numbers: PropTypes.string,
+  noMaceServer: PropTypes.bool,
 }
 Ace.defaultProps = {
   clickOut: true,
@@ -255,4 +332,5 @@ Ace.defaultProps = {
     tabSize: 2,
     useSoftTabs: true,
   },
+  noMaceServer: false,
 }
