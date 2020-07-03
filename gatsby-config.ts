@@ -1,8 +1,8 @@
 import path from "path"
 
 import { String } from "runtypes"
-const title = String.check(process.env.npm_package_name)
-const description = String.check(process.env.npm_package_description)
+const title = process.env.npm_package_name && String.check(process.env.npm_package_name)
+const description = process.env.npm_package_description && String.check(process.env.npm_package_description)
 
 export const siteMetadata = { title, description }
 export const plugins: unknown[] = [
