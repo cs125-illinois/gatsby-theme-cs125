@@ -7,12 +7,14 @@ import { LoremIpsum } from "../lorem-ipsum/"
 import { Race } from "../race/Race"
 
 ```sh id=install
+// Install example
 npm i @cs125/gatsby-theme-cs125
 ```
 
 <Race mode={"java"} maxLines={8}>
 
 ```java
+// Speak&Code example
 System.out.println("Here");
 ```
 
@@ -20,9 +22,19 @@ System.out.println("Here");
 
 <Lead>
 
-This is so great.
+This is lead text.
 
 </Lead>
+
+```jsx
+const App: React.FC = () => {
+  return (
+    <ElementTracker tags=["h1", "h2"]>
+      <RestOfYourApp />
+    </ElementTracker>
+  )
+}
+```
 
 Let's try [a link](https://cs125.cs.illinois.edu).
 And what about a [relative link](/second).

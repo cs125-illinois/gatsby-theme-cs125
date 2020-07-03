@@ -38,7 +38,16 @@ const useStyles = makeStyles(theme => ({
     ".ace_display_only .ace_cursor-layer": {
       display: "none",
     },
+    ".ace_display_only .ace_bracket": {
+      display: "none",
+    },
+    ".ace_display_only .ace_indent-guide": {
+      background: "none",
+    },
     ".ace_mobile-menu": {
+      display: "none !important",
+    },
+    ".ace_fold-widget": {
       display: "none !important",
     },
   },
