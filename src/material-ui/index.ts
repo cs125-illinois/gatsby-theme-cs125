@@ -1,5 +1,3 @@
-import { headings } from "./Typography"
-
 export { MainContainer } from "./MainContainer"
 export { MinWidth } from "./MinWidth"
 export { StickyBar } from "./StickyBar"
