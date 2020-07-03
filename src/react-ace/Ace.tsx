@@ -19,8 +19,10 @@ import { mace, useMace } from "@cs125/mace"
 import { debounce } from "throttle-debounce"
 
 import CheckCircle from "@material-ui/icons/CheckCircle"
+import Restore from "@material-ui/icons/Restore"
 import CircularProgress from "@material-ui/core/CircularProgress"
 import green from "@material-ui/core/colors/green"
+import grey from "@material-ui/core/colors/grey"
 import Tooltip from "@material-ui/core/Tooltip"
 
 const useStyles = makeStyles(theme => ({
@@ -58,13 +60,21 @@ const useStyles = makeStyles(theme => ({
     background: "none!important",
     lineHeight: "1.4em!important",
   },
-  saveWrapper: {
+  overlaysWrapper: {
     position: "absolute",
     top: 2,
     right: 2,
+    display: "flex",
+  },
+  iconWrapper: {
+    lineHeight: 1,
   },
   save: {
     color: green[400],
+    fontSize: theme.spacing(2),
+  },
+  restore: {
+    color: grey[500],
     fontSize: theme.spacing(2),
   },
   saving: {
@@ -73,7 +83,7 @@ const useStyles = makeStyles(theme => ({
     left: 0,
     color: green.A700,
   },
-  savingTooltipPosition: {
+  tooltipPosition: {
     margin: 0,
   },
 }))
@@ -133,10 +143,9 @@ export const Ace: React.FC<AceProps> = ({
   }
 
   const numbers = props.numbers !== undefined ? props.numbers === "true" : !displayOnly
-
   const theme = props.theme || muiTheme.palette.type === "light" ? "chrome" : "tomorrow_night"
-
   const haveSSR = id && hasAceSSR(id)
+
   const SSRContent = (SSR || haveSSR) && id && (
     <div className={`${classes.wrapper} ${displayOnly ? "ace_display_only" : ""}`.trim()}>
       {!displayOnly && (
@@ -170,16 +179,26 @@ export const Ace: React.FC<AceProps> = ({
 
   const saver = useRef<() => void | undefined>()
 
+  const aceRef = useRef<IAceEditor | undefined>()
+  const [modified, setModified] = useState(false)
   const connectMace = !displayOnly && id !== undefined
+
   if (connectMace) {
     overlays.push(
-      <div className={classes.saveWrapper}>
+      <div className={classes.overlaysWrapper}>
+        {modified && (
+          <Tooltip title={"Restore"} placement="left" classes={{ tooltipPlacementLeft: classes.tooltipPosition }}>
+            <div className={classes.iconWrapper} onClick={() => changeValue(aceRef.current, defaultValue)}>
+              <Restore className={classes.restore} />
+            </div>
+          </Tooltip>
+        )}
         <Tooltip
           title={saving ? "Saving" : "Saved"}
           placement="right"
-          classes={{ tooltipPlacementRight: classes.savingTooltipPosition }}
+          classes={{ tooltipPlacementRight: classes.tooltipPosition }}
         >
-          <div>
+          <div className={classes.iconWrapper}>
             <CheckCircle className={classes.save} />
             {saving && <CircularProgress className={classes.saving} disableShrink size={muiTheme.spacing(2)} />}
           </div>
@@ -224,7 +243,12 @@ export const Ace: React.FC<AceProps> = ({
                 ace.config.set("basePath", "https://cdn.jsdelivr.net/npm/ace-builds@1.4.11/src-min-noconflict")
                 props.onBeforeLoad && props.onBeforeLoad(ace)
               }}
+              onChange={value => {
+                defaultValue && setModified(value !== defaultValue)
+              }}
               onLoad={editor => {
+                aceRef.current = editor
+
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const session = editor.session as any
                 session.gutterRenderer = {
@@ -333,4 +357,13 @@ Ace.defaultProps = {
     useSoftTabs: true,
   },
   noMaceServer: false,
+}
+
+const changeValue = (editor: IAceEditor | undefined, value: string | undefined) => {
+  if (!editor || !value) {
+    return
+  }
+  const position = editor.session.selection.toJSON()
+  editor.setValue(value)
+  editor.session.selection.fromJSON(position)
 }
