@@ -1,4 +1,4 @@
-import React, { ReactNode, useState, Suspense, useRef } from "react"
+import React, { ReactNode, useState, Suspense, useRef, useCallback } from "react"
 import PropTypes from "prop-types"
 
 import makeStyles from "@material-ui/core/styles/makeStyles"
@@ -16,14 +16,21 @@ import { hasAceSSR } from "./AceSSR"
 const SSR = typeof window === "undefined"
 
 import { mace, useMace } from "@cs125/mace"
+import { useJeed, JeedContext, Response, FlatSource, Task, TaskArguments, terminalOutput } from "@cs125/jeed-react"
+
 import { debounce } from "throttle-debounce"
 
 import CheckCircle from "@material-ui/icons/CheckCircle"
 import Restore from "@material-ui/icons/Restore"
+import PlayCircleFilled from "@material-ui/icons/PlayCircleFilled"
 import CircularProgress from "@material-ui/core/CircularProgress"
+import Close from "@material-ui/icons/Close"
+
 import green from "@material-ui/core/colors/green"
 import grey from "@material-ui/core/colors/grey"
 import Tooltip from "@material-ui/core/Tooltip"
+import Paper from "@material-ui/core/Paper"
+import { CSSProperties } from "@material-ui/core/styles/withStyles"
 
 const useStyles = makeStyles(theme => ({
   "@global": {
@@ -51,9 +58,11 @@ const useStyles = makeStyles(theme => ({
       display: "none !important",
     },
   },
-  wrapper: {
+  top: {
     marginTop: theme.spacing(2),
     marginBottom: theme.spacing(2),
+  },
+  wrapper: {
     backgroundColor: theme.palette.action.hover,
     paddingTop: theme.spacing(2),
     paddingBottom: theme.spacing(2),
@@ -69,9 +78,17 @@ const useStyles = makeStyles(theme => ({
     background: "none!important",
     lineHeight: "1.4em!important",
   },
-  overlaysWrapper: {
+  overlaysWrapperTop: {
+    zIndex: 10,
     position: "absolute",
     top: 2,
+    right: 2,
+    display: "flex",
+  },
+  overlaysWrapperBottom: {
+    zIndex: 10,
+    position: "absolute",
+    bottom: 2,
     right: 2,
     display: "flex",
   },
@@ -81,6 +98,18 @@ const useStyles = makeStyles(theme => ({
   save: {
     color: green[400],
     fontSize: theme.spacing(2),
+  },
+  run: {
+    color: green[700],
+    fontSize: theme.spacing(4),
+  },
+  close: {
+    fontSize: theme.spacing(2.4),
+    position: "absolute",
+    top: 0,
+    right: 0,
+    zIndex: 20,
+    color: "white",
   },
   restore: {
     color: grey[500],
@@ -92,8 +121,36 @@ const useStyles = makeStyles(theme => ({
     left: 0,
     color: green.A700,
   },
+  running: {
+    position: "absolute",
+    bottom: 2,
+    left: 0,
+    color: green.A400,
+  },
   tooltipPosition: {
     margin: 0,
+  },
+  output: {
+    margin: 0,
+    padding: theme.spacing(1),
+    color: grey[50],
+    backgroundColor: grey.A700,
+    border: "none",
+    overflow: "auto",
+  },
+  outputPre: {
+    fontFamily: "Source Code Pro, monospace!important",
+    margin: 0,
+  },
+  terminalSkeleton: {
+    position: "absolute",
+    zIndex: 10,
+    color: "white",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(255, 255, 255, 0.5)",
   },
 }))
 
@@ -114,6 +171,8 @@ export interface AceProps extends IAceEditorProps {
   initialCursorPosition?: number[]
   overlays?: ReactNode[]
   noMaceServer?: boolean
+  noJeed?: boolean
+  maxOutputLines?: number
   children?: ReactNode
 }
 export const Ace: React.FC<AceProps> = ({
@@ -123,10 +182,15 @@ export const Ace: React.FC<AceProps> = ({
   initialCursorPosition,
   overlays = [],
   noMaceServer = false,
+  noJeed = false,
+  maxOutputLines = 16,
+  mode,
   children,
   ...props
 }) => {
   const maceContext = useMace()
+  const jeedContext = useJeed()
+
   const [showPlaceholder, setShowPlaceholder] = useState(true)
 
   const classes = useStyles()
@@ -142,7 +206,7 @@ export const Ace: React.FC<AceProps> = ({
       ? Children.onlyText(children).trim()
       : props.defaultValue
 
-  displayOnly = displayOnly !== undefined ? displayOnly : !(props.mode === "java" || props.mode === "kotlin")
+  displayOnly = displayOnly !== undefined ? displayOnly : !(mode === "java" || mode === "kotlin")
   const showPrintMargin = displayOnly ? false : props.showPrintMargin
   if (displayOnly) {
     setOptions.readOnly = true
@@ -173,7 +237,7 @@ export const Ace: React.FC<AceProps> = ({
         id={id}
         numbers={numbers}
         gutterWidth={`${gutterWidth + muiTheme.spacing(1) + 1}px`}
-        mode={props.mode as string}
+        mode={mode as string}
         theme={theme}
         lineHeight={"1.4rem"}
         fontSize={props.fontSize}
@@ -194,7 +258,7 @@ export const Ace: React.FC<AceProps> = ({
 
   if (connectMace) {
     overlays.push(
-      <div className={classes.overlaysWrapper}>
+      <div className={classes.overlaysWrapperTop}>
         {modified && (
           <Tooltip title={"Restore"} placement="left" classes={{ tooltipPlacementLeft: classes.tooltipPosition }}>
             <div className={classes.iconWrapper} onClick={() => changeValue(aceRef.current, defaultValue)}>
@@ -216,8 +280,47 @@ export const Ace: React.FC<AceProps> = ({
     )
   }
 
+  const [running, setRunning] = useState(false)
+  const [output, setOutput] = useState<string>("")
+  const [showOutput, setShowOutput] = useState(false)
+
+  const run = useCallback(() => {
+    const contents = aceRef.current?.getValue()
+    if (!contents) {
+      return
+    }
+    setRunning(true)
+    runJeedJob({ id: "test", sources: [{ path: "", contents }], tasks: ["compile", "execute"] }, jeedContext).then(
+      response => {
+        const output = terminalOutput(response)
+        setOutput(output !== "" ? output : "(Completed With No Output)")
+        setShowOutput(true)
+        setRunning(false)
+      }
+    )
+  }, [jeedContext])
+
+  const connectJeed = (mode === "java" || mode === "kotlin") && !noJeed
+  if (connectJeed) {
+    overlays.push(
+      <div className={classes.overlaysWrapperBottom}>
+        <Tooltip title={"Run"} placement="right" classes={{ tooltipPlacementRight: classes.tooltipPosition }}>
+          <div className={classes.iconWrapper} onClick={run}>
+            <PlayCircleFilled className={classes.run} onClick={run} />
+            {running && <CircularProgress className={classes.running} disableShrink size={muiTheme.spacing(4)} />}
+          </div>
+        </Tooltip>
+      </div>
+    )
+    commands.push({
+      name: "run",
+      bindKey: { win: "Ctrl-Enter", mac: "Ctrl-Enter" },
+      exec: run,
+    })
+  }
+
   return (
-    <>
+    <div className={classes.top}>
       {showPlaceholder &&
         (SSRContent || (
           <Skeleton
@@ -248,6 +351,7 @@ export const Ace: React.FC<AceProps> = ({
             {overlays && overlays}
             <AceEditor
               {...props}
+              mode={mode}
               onBeforeLoad={ace => {
                 ace.config.set("basePath", "https://cdn.jsdelivr.net/npm/ace-builds@1.4.11/src-min-noconflict")
                 props.onBeforeLoad && props.onBeforeLoad(ace)
@@ -327,9 +431,24 @@ export const Ace: React.FC<AceProps> = ({
               theme={theme}
             />
           </div>
+          {showOutput && (
+            <div style={{ position: "relative" }}>
+              <Paper
+                variant="outlined"
+                square
+                className={classes.output}
+                style={{ maxHeight: `${1.5 * maxOutputLines}em` }}
+              >
+                <CornerButton size={muiTheme.spacing(2)} color={grey.A200} onClick={() => setShowOutput(false)} />
+                <Close className={classes.close} onClick={() => setShowOutput(false)} />
+                {running && <Skeleton variant="rect" className={classes.terminalSkeleton} />}
+                <pre className={classes.outputPre}>{output}</pre>
+              </Paper>
+            </div>
+          )}
         </Suspense>
       )}
-    </>
+    </div>
   )
 }
 Ace.propTypes = {
@@ -353,6 +472,8 @@ Ace.propTypes = {
   fontSize: PropTypes.any,
   numbers: PropTypes.string,
   noMaceServer: PropTypes.bool,
+  noJeed: PropTypes.bool,
+  maxOutputLines: PropTypes.number,
 }
 Ace.defaultProps = {
   clickOut: true,
@@ -366,6 +487,8 @@ Ace.defaultProps = {
     useSoftTabs: true,
   },
   noMaceServer: false,
+  noJeed: false,
+  maxOutputLines: 16,
 }
 
 const changeValue = (editor: IAceEditor | undefined, value: string | undefined) => {
@@ -375,4 +498,58 @@ const changeValue = (editor: IAceEditor | undefined, value: string | undefined) 
   const position = editor.session.selection.toJSON()
   editor.setValue(value)
   editor.session.selection.fromJSON(position)
+}
+
+interface JeedJob {
+  id: string
+  sources: FlatSource[]
+  tasks: Task[]
+  args?: TaskArguments
+}
+
+const runJeedJob = (job: JeedJob, jeed: JeedContext): Promise<Response> => {
+  const { id, sources, tasks, args } = job
+
+  const snippet = sources.length === 1 && sources[0].path === ""
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const request = { label: id, tasks, args } as any
+  if (snippet) {
+    request.snippet = sources[0].contents
+  } else {
+    request.sources = sources
+  }
+
+  return jeed.run(request)
+}
+
+interface CornerButtonProps extends React.HTMLAttributes<HTMLDivElement> {
+  size: number
+  color: string
+  style?: CSSProperties
+}
+const CornerButton: React.FC<CornerButtonProps> = ({ size, color, style = {}, ...props }) => {
+  return (
+    <div
+      {...props}
+      style={{
+        display: "block",
+        width: size,
+        height: size,
+        borderStyle: "solid",
+        borderWidth: `0 ${size * 2}px ${size * 2}px 0`,
+        borderColor: `transparent ${color} transparent transparent`,
+        position: "absolute",
+        top: 0,
+        right: 0,
+        zIndex: 10,
+        ...style,
+      }}
+    />
+  )
+}
+CornerButton.propTypes = {
+  size: PropTypes.number.isRequired,
+  color: PropTypes.string.isRequired,
+  children: PropTypes.any,
+  style: PropTypes.any,
 }
