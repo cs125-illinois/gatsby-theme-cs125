@@ -17,9 +17,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "typeRoots": ["node_modules/@types", "./typings"],
-    "baseUrl": ".",
-    "paths": {
-      "@cs125/jeed-react": ["../jeed/react/dist"]
-    }
+    "baseUrl": "."
   }
 }

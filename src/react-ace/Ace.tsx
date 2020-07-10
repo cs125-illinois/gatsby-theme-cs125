@@ -4,6 +4,7 @@ import PropTypes from "prop-types"
 import makeStyles from "@material-ui/core/styles/makeStyles"
 import useTheme from "@material-ui/core/styles/useTheme"
 import Skeleton from "@material-ui/lab/Skeleton"
+import IconButton from "@material-ui/core/IconButton"
 
 import Children from "react-children-utilities"
 
@@ -16,7 +17,7 @@ import { hasAceSSR } from "./AceSSR"
 const SSR = typeof window === "undefined"
 
 import { mace, useMace } from "@cs125/mace"
-import { useJeed, JeedContext, Response, FlatSource, Task, TaskArguments, terminalOutput } from "@cs125/jeed-react"
+import { useJeed, JeedContext, Response, FlatSource, Task, TaskArguments, terminalOutput, Request } from "@cs125/jeed"
 
 import { debounce } from "throttle-debounce"
 
@@ -27,6 +28,7 @@ import CircularProgress from "@material-ui/core/CircularProgress"
 import Close from "@material-ui/icons/Close"
 
 import green from "@material-ui/core/colors/green"
+import blue from "@material-ui/core/colors/blue"
 import grey from "@material-ui/core/colors/grey"
 import Tooltip from "@material-ui/core/Tooltip"
 import Paper from "@material-ui/core/Paper"
@@ -41,6 +43,11 @@ const useStyles = makeStyles(theme => ({
       width: "100%",
       paddingLeft: "0!important",
       paddingRight: `${theme.spacing(1)}px !important`,
+      fontSize: "0.8em",
+    },
+    ".ace_gutter-cell.ace_info": {
+      backgroundImage: "none !important",
+      backgroundColor: theme.palette.type == "light" ? blue[100] : blue[900],
     },
     ".ace_display_only .ace_cursor-layer": {
       display: "none",
@@ -94,6 +101,7 @@ const useStyles = makeStyles(theme => ({
   },
   iconWrapper: {
     lineHeight: 1,
+    padding: 0,
   },
   save: {
     color: green[400],
@@ -123,7 +131,7 @@ const useStyles = makeStyles(theme => ({
   },
   running: {
     position: "absolute",
-    bottom: 2,
+    bottom: 0,
     left: 0,
     color: green.A400,
   },
@@ -172,6 +180,10 @@ export interface AceProps extends IAceEditorProps {
   overlays?: ReactNode[]
   noMaceServer?: boolean
   noJeed?: boolean
+  snippet?: boolean
+  complexity?: boolean
+  noCheckstyle?: boolean
+  useContainer?: boolean
   maxOutputLines?: number
   children?: ReactNode
 }
@@ -183,8 +195,13 @@ export const Ace: React.FC<AceProps> = ({
   overlays = [],
   noMaceServer = false,
   noJeed = false,
+  snippet = false,
+  complexity = false,
+  noCheckstyle = false,
+  useContainer = false,
   maxOutputLines = 16,
   mode,
+  annotations,
   children,
   ...props
 }) => {
@@ -258,7 +275,7 @@ export const Ace: React.FC<AceProps> = ({
 
   if (connectMace) {
     overlays.push(
-      <div className={classes.overlaysWrapperTop}>
+      <div className={classes.overlaysWrapperTop} key="top">
         {modified && (
           <Tooltip title={"Restore"} placement="left" classes={{ tooltipPlacementLeft: classes.tooltipPosition }}>
             <div className={classes.iconWrapper} onClick={() => changeValue(aceRef.current, defaultValue)}>
@@ -283,39 +300,82 @@ export const Ace: React.FC<AceProps> = ({
   const [running, setRunning] = useState(false)
   const [output, setOutput] = useState<string>("")
   const [showOutput, setShowOutput] = useState(false)
+  const [complexityAnnotations, setComplexityAnnotations] = useState<AceAnnotation[]>([])
 
   const run = useCallback(() => {
     const contents = aceRef.current?.getValue()
-    if (!contents) {
+    if (!contents || (mode !== "java" && mode !== "kotlin")) {
       return
     }
+    const tasks: Record<string, boolean> = {}
+    if (mode === "java") {
+      tasks["compile"] = true
+      if (!noCheckstyle) {
+        tasks["checkstyle"] = true
+      }
+      tasks["complexity"] = true
+    } else if (mode == "kotlin") {
+      tasks["kompile"] = true
+    }
+    if (!useContainer) {
+      tasks["execute"] = true
+    } else {
+      tasks["cexecute"] = true
+    }
     setRunning(true)
-    runJeedJob({ id: "test", sources: [{ path: "", contents }], tasks: ["compile", "execute"] }, jeedContext).then(
-      response => {
+    runJeedJob(
+      { id: "test", sources: [{ path: snippet ? "" : "Main.java", contents }], tasks: Object.keys(tasks) as Task[] },
+      jeedContext
+    )
+      .then(response => {
+        console.debug(response)
         const output = terminalOutput(response)
         setOutput(output !== "" ? output : "(Completed With No Output)")
         setShowOutput(true)
         setRunning(false)
-      }
-    )
-  }, [jeedContext])
+        if (complexity && response.completed.complexity) {
+          setComplexityAnnotations(
+            response.completed.complexity.results[0].methods
+              .filter(m => m.name !== "")
+              .map(m => {
+                return {
+                  row: m.range.start.line - 1,
+                  column: 0,
+                  type: "info",
+                  text: `${m.name}: complexity ${m.complexity}`,
+                }
+              })
+          )
+        } else {
+          setComplexityAnnotations([])
+        }
+      })
+      .catch(err => {
+        console.error(err)
+        setOutput(`Error: ${err}`)
+        setShowOutput(true)
+        setRunning(false)
+      })
+  }, [mode, noCheckstyle, useContainer, snippet, jeedContext, complexity])
 
   const connectJeed = (mode === "java" || mode === "kotlin") && !noJeed
   if (connectJeed) {
     overlays.push(
-      <div className={classes.overlaysWrapperBottom}>
+      <div className={classes.overlaysWrapperBottom} key="bottom">
         <Tooltip title={"Run"} placement="right" classes={{ tooltipPlacementRight: classes.tooltipPosition }}>
-          <div className={classes.iconWrapper} onClick={run}>
-            <PlayCircleFilled className={classes.run} onClick={run} />
+          <IconButton disabled={running} className={classes.iconWrapper} onClick={run}>
+            <PlayCircleFilled className={classes.run} />
             {running && <CircularProgress className={classes.running} disableShrink size={muiTheme.spacing(4)} />}
-          </div>
+          </IconButton>
         </Tooltip>
       </div>
     )
     commands.push({
       name: "run",
       bindKey: { win: "Ctrl-Enter", mac: "Ctrl-Enter" },
-      exec: run,
+      exec: () => {
+        !running && run()
+      },
     })
   }
 
@@ -351,6 +411,7 @@ export const Ace: React.FC<AceProps> = ({
             {overlays && overlays}
             <AceEditor
               {...props}
+              annotations={(annotations || []).concat(complexityAnnotations)}
               mode={mode}
               onBeforeLoad={ace => {
                 ace.config.set("basePath", "https://cdn.jsdelivr.net/npm/ace-builds@1.4.11/src-min-noconflict")
@@ -372,6 +433,7 @@ export const Ace: React.FC<AceProps> = ({
                     return !numbers ? "" : session.$firstLineNumber + row
                   },
                 }
+
                 if (!displayOnly && initialCursorPosition) {
                   editor.moveCursorTo(initialCursorPosition[0], initialCursorPosition[1])
                 }
@@ -473,6 +535,11 @@ Ace.propTypes = {
   numbers: PropTypes.string,
   noMaceServer: PropTypes.bool,
   noJeed: PropTypes.bool,
+  noCheckstyle: PropTypes.bool,
+  useContainer: PropTypes.bool,
+  snippet: PropTypes.bool,
+  complexity: PropTypes.bool,
+  annotations: PropTypes.array,
   maxOutputLines: PropTypes.number,
 }
 Ace.defaultProps = {
@@ -488,6 +555,10 @@ Ace.defaultProps = {
   },
   noMaceServer: false,
   noJeed: false,
+  noCheckstyle: false,
+  useContainer: false,
+  snippet: false,
+  complexity: false,
   maxOutputLines: 16,
 }
 
@@ -510,16 +581,17 @@ interface JeedJob {
 const runJeedJob = (job: JeedJob, jeed: JeedContext): Promise<Response> => {
   const { id, sources, tasks, args } = job
 
+  const usedArgs = Object.assign({}, args, { snippet: { indent: 2 }, checkstyle: { failOnError: true } })
   const snippet = sources.length === 1 && sources[0].path === ""
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const request = { label: id, tasks, args } as any
+  const request = { label: id, tasks, arguments: usedArgs } as Request
   if (snippet) {
     request.snippet = sources[0].contents
   } else {
     request.sources = sources
   }
-
-  return jeed.run(request)
+  console.debug(request)
+  return jeed.run(request, true)
 }
 
 interface CornerButtonProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -552,4 +624,10 @@ CornerButton.propTypes = {
   color: PropTypes.string.isRequired,
   children: PropTypes.any,
   style: PropTypes.any,
+}
+interface AceAnnotation {
+  row: number
+  column: number
+  type: string
+  text: string
 }

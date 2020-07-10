@@ -4,7 +4,7 @@ import { GatsbyBrowser, WrapRootElementBrowserArgs } from "gatsby"
 import { GoogleLoginProvider, WithGoogleTokens } from "@cs125/react-google-login"
 import { ElementTrackerServer } from "@cs125/element-tracker"
 import { MaceProvider } from "@cs125/mace"
-import { JeedProvider } from "@cs125/jeed-react"
+import { JeedProvider } from "@cs125/jeed"
 
 import { String } from "runtypes"
 const GOOGLE_CLIENT_ID = String.check(process.env.GOOGLE_CLIENT_ID)

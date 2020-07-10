@@ -84,7 +84,7 @@ if (process.env.THEME_DEVELOPMENT) {
           "@cs125/element-tracker": "../element-tracker/",
           "@cs125/react-google-login": "../react-google-login",
           "@cs125/mace": "../mace",
-          "@cs125/jeed-react": "../jeed/react",
+          "@cs125/jeed": "../jeed/react",
         },
       },
     },
