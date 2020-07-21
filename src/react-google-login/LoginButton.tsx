@@ -64,8 +64,9 @@ const useStyles = makeStyles(theme => ({
 
 export interface LoginButtonProps extends ButtonProps {
   iconOnly?: boolean
+  loginText?: string
 }
-export const LoginButton: React.FC<LoginButtonProps> = ({ iconOnly = false, ...props }) => {
+export const LoginButton: React.FC<LoginButtonProps> = ({ iconOnly = false, loginText = "Login", ...props }) => {
   const { ready, auth, isSignedIn, err, loggingIn, setLoggingIn } = useGoogleLogin()
   const classes = useStyles()
   const theme = useTheme()
@@ -99,7 +100,7 @@ export const LoginButton: React.FC<LoginButtonProps> = ({ iconOnly = false, ...p
       <Google fontSize={"inherit"} />
     ) : (
       <div>
-        <Google fontSize={"inherit"} className={classes.icon} /> Login
+        <Google fontSize={"inherit"} className={classes.icon} /> <span>{loginText}</span>
       </div>
     )
     className = classes.success
@@ -134,7 +135,9 @@ export const LoginButton: React.FC<LoginButtonProps> = ({ iconOnly = false, ...p
 }
 LoginButton.propTypes = {
   iconOnly: PropTypes.bool,
+  loginText: PropTypes.string,
 }
 LoginButton.defaultProps = {
   iconOnly: false,
+  loginText: "Login",
 }

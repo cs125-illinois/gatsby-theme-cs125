@@ -271,7 +271,7 @@ export const Ace: React.FC<AceProps> = ({
 
   const aceRef = useRef<IAceEditor | undefined>()
   const [modified, setModified] = useState(false)
-  const connectMace = !displayOnly && id !== undefined
+  const connectMace = maceContext.available && !displayOnly && id !== undefined
 
   if (connectMace) {
     overlays.push(
@@ -324,7 +324,11 @@ export const Ace: React.FC<AceProps> = ({
     }
     setRunning(true)
     runJeedJob(
-      { id: "test", sources: [{ path: snippet ? "" : "Main.java", contents }], tasks: Object.keys(tasks) as Task[] },
+      {
+        id: id || "jeed",
+        sources: [{ path: snippet ? "" : mode == "java" ? "Main.java" : "Main.kt", contents }],
+        tasks: Object.keys(tasks) as Task[],
+      },
       jeedContext
     )
       .then(response => {
@@ -356,9 +360,9 @@ export const Ace: React.FC<AceProps> = ({
         setShowOutput(true)
         setRunning(false)
       })
-  }, [mode, noCheckstyle, useContainer, snippet, jeedContext, complexity])
+  }, [id, mode, noCheckstyle, useContainer, snippet, jeedContext, complexity])
 
-  const connectJeed = (mode === "java" || mode === "kotlin") && !noJeed
+  const connectJeed = jeedContext.available && (mode === "java" || mode === "kotlin") && !noJeed
   if (connectJeed) {
     overlays.push(
       <div className={classes.overlaysWrapperBottom} key="bottom">

@@ -7,7 +7,7 @@ import { MaceProvider } from "@cs125/mace"
 import { JeedProvider } from "@cs125/jeed"
 
 import { String } from "runtypes"
-const GOOGLE_CLIENT_ID = String.check(process.env.GOOGLE_CLIENT_ID)
+const GOOGLE_CLIENT_ID = String.check(process.env.GOOGLE_CLIENT_IDS).split(",")[0]
 const ET_SERVER = process.env.ET_SERVER && String.check(process.env.ET_SERVER)
 const MACE_SERVER = process.env.MACE_SERVER && String.check(process.env.MACE_SERVER)
 const JEED_SERVER = process.env.JEED_SERVER && String.check(process.env.JEED_SERVER)
