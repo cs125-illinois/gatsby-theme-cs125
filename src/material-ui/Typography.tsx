@@ -1,7 +1,7 @@
 import React from "react"
 import PropTypes from "prop-types"
 
-import Typography from "@material-ui/core/Typography"
+import Typography, { TypographyProps } from "@material-ui/core/Typography"
 import makeStyles from "@material-ui/core/styles/makeStyles"
 import Link, { LinkProps } from "@material-ui/core/Link"
 
@@ -17,11 +17,8 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-interface HeadingProps {
-  children: React.ReactNode
-}
-const Heading = (tag: "h1" | "h2" | "h3" | "h4" | "h5" | "h6"): React.FC<HeadingProps> => {
-  const WrappedHeading: React.FC<HeadingProps> = ({ children, ...props }) => {
+const Heading = (tag: "h1" | "h2" | "h3" | "h4" | "h5" | "h6"): React.FC<TypographyProps> => {
+  const WrappedHeading: React.FC<TypographyProps> = ({ children, ...props }) => {
     return (
       <Typography variant={tag} gutterBottom={true} {...props}>
         {children}
@@ -50,7 +47,7 @@ export const headings = {
   h6: H6,
 }
 
-export const P: React.FC = ({ children, ...props }) => (
+export const P: React.FC<TypographyProps> = ({ children, ...props }) => (
   <Typography paragraph={true} {...props}>
     {children}
   </Typography>
@@ -59,7 +56,7 @@ P.propTypes = {
   children: PropTypes.node.isRequired,
 }
 
-export const Lead: React.FC = ({ children }) => {
+export const Lead: React.FC<HTMLParagraphElement> = ({ children }) => {
   const classes = useStyles()
   const elements = React.Children.toArray(children).map(element => {
     return React.cloneElement(element as React.ReactElement<HTMLParagraphElement>, { className: classes.lead })
