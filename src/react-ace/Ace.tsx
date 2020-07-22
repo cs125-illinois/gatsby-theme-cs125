@@ -185,7 +185,7 @@ export interface AceProps extends IAceEditorProps {
   noCheckstyle?: boolean
   useContainer?: boolean
   maxOutputLines?: number
-  style?: CSSProperties
+  wrapperStyle?: CSSProperties
   children?: ReactNode
 }
 export const Ace: React.FC<AceProps> = ({
@@ -203,7 +203,7 @@ export const Ace: React.FC<AceProps> = ({
   maxOutputLines = 16,
   mode,
   annotations,
-  style = {},
+  wrapperStyle = {},
   children,
   ...props
 }) => {
@@ -386,7 +386,7 @@ export const Ace: React.FC<AceProps> = ({
   }
 
   return (
-    <div className={classes.top} style={style}>
+    <div className={classes.top} style={wrapperStyle}>
       {showPlaceholder &&
         (SSRContent || (
           <Skeleton
@@ -546,7 +546,7 @@ Ace.propTypes = {
   snippet: PropTypes.bool,
   complexity: PropTypes.bool,
   annotations: PropTypes.array,
-  style: PropTypes.any,
+  wrapperStyle: PropTypes.any,
   maxOutputLines: PropTypes.number,
 }
 Ace.defaultProps = {
@@ -566,8 +566,8 @@ Ace.defaultProps = {
   useContainer: false,
   snippet: false,
   complexity: false,
+  wrapperStyle: {},
   maxOutputLines: 16,
-  style: {},
 }
 
 const changeValue = (editor: IAceEditor | undefined, value: string | undefined) => {
