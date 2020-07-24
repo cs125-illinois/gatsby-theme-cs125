@@ -500,7 +500,7 @@ export const Ace: React.FC<AceProps> = ({
             />
           </div>
           {showOutput && (
-            <div style={{ position: "relative" }}>
+            <div style={{ position: "relative", textAlign: "left" }}>
               <Paper
                 variant="outlined"
                 square

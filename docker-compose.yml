@@ -36,6 +36,17 @@ services:
       - "JEED_CONTAINER_TMP_DIR=/tmp/"
     volumes:
       - "jeed_docker:/tmp/"
+  chitter:
+    image: "cs125/chitter:latest"
+    depends_on:
+      - mongodb
+    ports:
+      - "8891:8888"
+    environment:
+      - "CHITTER_DEVELOPMENT=true"
+      - "CHITTER_ALLOWED_ROOMS=${CHITTER_ALLOWED_ROOMS}"
+      - "MONGODB=mongodb://mongodb/demo"
+      - "GOOGLE_CLIENT_IDS=${GOOGLE_CLIENT_IDS}"
   mongodb:
     image: "bitnami/mongodb:4.2"
     ports:

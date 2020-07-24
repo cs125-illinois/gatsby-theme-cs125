@@ -9,3 +9,4 @@ export const components = {
   pre: Pre,
   a: A,
 }
+export { headings, P, A, Code, Pre }

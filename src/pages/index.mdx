@@ -1,15 +1,23 @@
 import { Single } from "../sites/"
 export default Single
 
+import { Chitterer } from "../chitter/"
 import { Lead } from "../material-ui/"
 import { LoremIpsum } from "../lorem-ipsum/"
 
-import { Race } from "../race/Race"
+This page includes examples of a variety of elements that we use on CS 125 website.
 
-```sh id=install
-// Install example
-npm i @cs125/gatsby-theme-cs125
-```
+## `chitter`
+
+Demo chat rooms.
+
+<Chitterer room="test" email="fake@illinois.edu" name="CS 125" />
+
+<Chitterer room="test" style={{ marginTop: 16 }} />
+
+## `jeed`
+
+This example should run and include complexity highlights in the gutter.
 
 ```java id=java complexity
 public class Main {
@@ -19,11 +27,29 @@ public class Main {
 }
 ```
 
+## `mdx`
+
+Testing some `mdx` and Material UI integrations.
+
 <Lead>
 
 This is lead text.
 
 </Lead>
+
+Let's try [a link](https://cs125.cs.illinois.edu).
+And what about a [relative link](/second).
+
+## `react-ace`
+
+Install example. Should not use Jeed or `mace` (no `id`) but still look OK.
+
+```sh id=install
+// Install example
+npm i @cs125/gatsby-theme-cs125
+```
+
+Styles for JSX examples.
 
 ```jsx
 const App: React.FC = () => {
@@ -35,14 +61,9 @@ const App: React.FC = () => {
 }
 ```
 
-Let's try [a link](https://cs125.cs.illinois.edu).
-And what about a [relative link](/second).
+## `mace`
 
-But let's try some actual text.
-
-## First
-
-This is to test mace.
+These two editors should remain synchronized.
 
 ```java id=helloworld snippet
 System.out.println("Here");
@@ -52,8 +73,8 @@ System.out.println("Here");
 System.out.println("Here");
 ```
 
-<LoremIpsum p={6} />
+## `element-tracker`
 
-## Second
+Here's some dummy content to make the page long enough for element tracking to kick in.
 
 <LoremIpsum p={8} />
