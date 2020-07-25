@@ -184,6 +184,7 @@ export interface AceProps extends IAceEditorProps {
   complexity?: boolean
   noCheckstyle?: boolean
   useContainer?: boolean
+  checkForSnippet?: boolean
   maxOutputLines?: number
   wrapperStyle?: CSSProperties
   children?: ReactNode
@@ -200,6 +201,7 @@ export const Ace: React.FC<AceProps> = ({
   complexity = false,
   noCheckstyle = false,
   useContainer = false,
+  checkForSnippet = false,
   maxOutputLines = 16,
   mode,
   annotations,
@@ -330,6 +332,7 @@ export const Ace: React.FC<AceProps> = ({
         id: id || "jeed",
         sources: [{ path: snippet ? "" : mode == "java" ? "Main.java" : "Main.kt", contents }],
         tasks: Object.keys(tasks) as Task[],
+        checkForSnippet,
       },
       jeedContext
     )
@@ -362,7 +365,7 @@ export const Ace: React.FC<AceProps> = ({
         setShowOutput(true)
         setRunning(false)
       })
-  }, [id, mode, noCheckstyle, useContainer, snippet, jeedContext, complexity])
+  }, [id, mode, noCheckstyle, useContainer, snippet, jeedContext, complexity, checkForSnippet])
 
   const connectJeed = jeedContext.available && (mode === "java" || mode === "kotlin") && !noJeed
   if (connectJeed) {
@@ -543,6 +546,7 @@ Ace.propTypes = {
   noJeed: PropTypes.bool,
   noCheckstyle: PropTypes.bool,
   useContainer: PropTypes.bool,
+  checkForSnippet: PropTypes.bool,
   snippet: PropTypes.bool,
   complexity: PropTypes.bool,
   annotations: PropTypes.array,
@@ -564,6 +568,7 @@ Ace.defaultProps = {
   noJeed: false,
   noCheckstyle: false,
   useContainer: false,
+  checkForSnippet: false,
   snippet: false,
   complexity: false,
   wrapperStyle: {},
@@ -584,15 +589,16 @@ interface JeedJob {
   sources: FlatSource[]
   tasks: Task[]
   args?: TaskArguments
+  checkForSnippet?: boolean
 }
 
 const runJeedJob = (job: JeedJob, jeed: JeedContext): Promise<Response> => {
-  const { id, sources, tasks, args } = job
+  const { id, sources, tasks, args, checkForSnippet } = job
 
   const usedArgs = Object.assign({}, args, { snippet: { indent: 2 }, checkstyle: { failOnError: true } })
   const snippet = sources.length === 1 && sources[0].path === ""
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const request = { label: id, tasks, arguments: usedArgs } as Request
+  const request = { label: id, tasks, arguments: usedArgs, checkForSnippet } as Request
   if (snippet) {
     request.snippet = sources[0].contents
   } else {

@@ -1,19 +1,12 @@
 import { Single } from "../sites/"
 export default Single
 
-import { Chitterer } from "../chitter/"
 import { Lead } from "../material-ui/"
 import { LoremIpsum } from "../lorem-ipsum/"
 
 This page includes examples of a variety of elements that we use on CS 125 website.
 
-## `chitter`
-
-Demo chat rooms.
-
-<Chitterer room="test" email="fake@illinois.edu" name="CS 125" />
-
-<Chitterer room="test" style={{ marginTop: 16 }} />
+## [`chitter`](/chitter)
 
 ## `jeed`
 
@@ -25,6 +18,36 @@ public class Main {
     System.out.println("Here");
   }
 }
+```
+
+```java snippet
+System.out.println("Java snippet!");
+```
+
+```java
+public class Main {
+  public static void main() {
+    System.out.println("Java source!");
+  }
+}
+```
+
+```kotlin snippet
+println("Kotlin snippet")
+```
+
+```kotlin
+fun main() {
+  println("Kotlin source")
+}
+```
+
+```kotlin checkForSnippet
+println("Should check for Kotlin snippet")
+```
+
+```java checkForSnippet
+System.out.println("Should check for Java snippet");
 ```
 
 ## `mdx`

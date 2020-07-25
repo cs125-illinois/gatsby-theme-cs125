@@ -1,12 +1,9 @@
-import React, { useState, useCallback, useImperativeHandle, forwardRef, useRef } from "react"
+import React, { useState, useCallback, useImperativeHandle, forwardRef } from "react"
 import PropTypes from "prop-types"
 
 import gravatar from "gravatar"
 import Avatar from "@material-ui/core/Avatar"
 import makeStyles from "@material-ui/core/styles/makeStyles"
-
-import useTimeout from "@rooks/use-timeout"
-import useOutsideClick from "@rooks/use-outside-click"
 
 import TextField, { TextFieldProps } from "@material-ui/core/TextField"
 import LinearProgress from "@material-ui/core/LinearProgress"
@@ -26,32 +23,21 @@ const useStyles = makeStyles({
 
 export interface ChittererTextFieldProps {
   onNewMessage: (contents: string) => void
+  waiting: boolean
   email: string | undefined
   gravatarOptions?: gravatar.Options
 }
 // eslint-disable-next-line react/display-name
 export const MarkdownTextField = forwardRef<{ clear: () => void }, TextFieldProps & ChittererTextFieldProps>(
-  ({ onNewMessage, email, gravatarOptions, ...props }, ref) => {
+  ({ onNewMessage, waiting, email, gravatarOptions, ...props }, ref) => {
     const classes = useStyles()
-
-    const textRef = useRef<HTMLDivElement>(null)
-    const clickedOutside = useRef(false)
-    useOutsideClick(textRef as React.MutableRefObject<HTMLInputElement>, () => {
-      clickedOutside.current = true
-    })
 
     const [value, setValue] = useState("")
     const [disabled, setDisabled] = useState(false)
-    const [spinner, setSpinner] = useState(false)
-    const { start: startTimer, clear: clearTimer } = useTimeout(() => setSpinner(true), 1024)
 
     useImperativeHandle(ref, () => ({
       clear: () => {
-        setValue("")
         setDisabled(false)
-        setSpinner(false)
-        clearTimer()
-        clickedOutside?.current === false && textRef.current?.focus()
       },
     }))
 
@@ -62,11 +48,11 @@ export const MarkdownTextField = forwardRef<{ clear: () => void }, TextFieldProp
     // to the next line
     const onKeyDown = useCallback(
       (event: React.KeyboardEvent<HTMLDivElement>, contents: string, disabled: boolean) => {
-        if (disabled) {
-          event.preventDefault()
+        if (event.key != "Enter") {
           return
         }
-        if (event.key != "Enter") {
+        if (disabled) {
+          event.preventDefault()
           return
         }
 
@@ -77,17 +63,17 @@ export const MarkdownTextField = forwardRef<{ clear: () => void }, TextFieldProp
 
         if (empty) {
           setValue("")
-        } else if (event.ctrlKey || inCode || currentLine === "```") {
+        } else if (event.ctrlKey || inCode || currentLine.startsWith("```")) {
           setValue(i => i + "\n")
         } else {
           let currentlyInCode = false
           let fixedContents = ""
           for (const line of lines) {
-            if (line === "```") {
+            if (line.startsWith("```")) {
               currentlyInCode = !currentlyInCode
             }
             if (fixedContents !== "") {
-              if (line !== "```" && !currentlyInCode) {
+              if (!line.startsWith("```") && !currentlyInCode) {
                 fixedContents += "  \n"
               } else {
                 fixedContents += "\n"
@@ -96,14 +82,13 @@ export const MarkdownTextField = forwardRef<{ clear: () => void }, TextFieldProp
             fixedContents += line
           }
           onNewMessage(fixedContents)
+          setValue("")
           setDisabled(true)
-          clickedOutside.current = false
-          startTimer()
         }
 
         event.preventDefault()
       },
-      [startTimer, onNewMessage]
+      [onNewMessage]
     )
 
     return (
@@ -111,9 +96,7 @@ export const MarkdownTextField = forwardRef<{ clear: () => void }, TextFieldProp
         <div className={classes.input}>
           <Avatar src={gravatar.url(email as string, gravatarOptions)} style={{ margin: 4 }} />
           <TextField
-            inputRef={textRef}
             {...props}
-            disabled={disabled}
             style={{ flex: 1 }}
             value={value}
             multiline
@@ -121,7 +104,7 @@ export const MarkdownTextField = forwardRef<{ clear: () => void }, TextFieldProp
             onKeyDown={e => onKeyDown(e, value, disabled)}
           />
         </div>
-        {spinner && <LinearProgress style={{ marginRight: 8 }} />}
+        {waiting && <LinearProgress style={{ marginRight: 8 }} />}
       </div>
     )
   }
@@ -129,6 +112,7 @@ export const MarkdownTextField = forwardRef<{ clear: () => void }, TextFieldProp
 
 MarkdownTextField.propTypes = {
   onNewMessage: PropTypes.func.isRequired,
+  waiting: PropTypes.bool.isRequired,
   email: PropTypes.string,
   gravatarOptions: PropTypes.object,
 }
