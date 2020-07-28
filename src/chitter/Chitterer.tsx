@@ -108,6 +108,7 @@ export const Chitterer: React.FC<ChittererProps> = ({ room, ...props }) => {
 
   const onReceive = useCallback(
     (received: ChitterMessage) => {
+      console.log(received)
       // There is an opportunity here to distribute other types of messages in other ways...
       if (received.messageType === "markdown" || received.messageType === "text") {
         setMessages(messages => {
@@ -123,6 +124,8 @@ export const Chitterer: React.FC<ChittererProps> = ({ room, ...props }) => {
         waitingFor.current = undefined
         setMessageWaiting(false)
         clearMessage()
+      } else if (waitingFor.current) {
+        console.warn(`Received a message that we weren't waiting for: ${waitingFor.current?.id} != ${received.id}`)
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
