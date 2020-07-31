@@ -59,6 +59,9 @@ const lightTheme = {
     text: {
       primary: "#444444",
     },
+    background: {
+      default: "#FEFEFE",
+    },
   },
 }
 const darkTheme = Object.assign({}, lightTheme, {

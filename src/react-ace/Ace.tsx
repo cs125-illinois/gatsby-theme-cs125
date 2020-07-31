@@ -1,10 +1,8 @@
 import React, { ReactNode, useState, Suspense, useRef, useCallback } from "react"
 import PropTypes from "prop-types"
 
-import makeStyles from "@material-ui/core/styles/makeStyles"
 import useTheme from "@material-ui/core/styles/useTheme"
-import Skeleton from "@material-ui/lab/Skeleton"
-import IconButton from "@material-ui/core/IconButton"
+import aceStyles from "./styles"
 
 import Children from "react-children-utilities"
 
@@ -18,149 +16,21 @@ const SSR = typeof window === "undefined"
 
 import { mace, useMace } from "@cs125/mace"
 import { useJeed, JeedContext, Response, FlatSource, Task, TaskArguments, terminalOutput, Request } from "@cs125/jeed"
+import { AceRecord, record as recorder } from "@cs125/monace"
 
 import { debounce } from "throttle-debounce"
 
-import CheckCircle from "@material-ui/icons/CheckCircle"
-import Restore from "@material-ui/icons/Restore"
-import PlayCircleFilled from "@material-ui/icons/PlayCircleFilled"
-import CircularProgress from "@material-ui/core/CircularProgress"
+import Skeleton from "@material-ui/lab/Skeleton"
 import Close from "@material-ui/icons/Close"
-
-import green from "@material-ui/core/colors/green"
-import blue from "@material-ui/core/colors/blue"
-import grey from "@material-ui/core/colors/grey"
-import Tooltip from "@material-ui/core/Tooltip"
 import Paper from "@material-ui/core/Paper"
 import { CSSProperties } from "@material-ui/core/styles/withStyles"
+import grey from "@material-ui/core/colors/grey"
 
-const useStyles = makeStyles(theme => ({
-  "@global": {
-    ".ace_gutter": {
-      background: "none !important",
-    },
-    ".ace_gutter-cell": {
-      width: "100%",
-      paddingLeft: "0!important",
-      paddingRight: `${theme.spacing(1)}px !important`,
-      fontSize: "0.8em",
-    },
-    ".ace_gutter-cell.ace_info": {
-      backgroundImage: "none !important",
-      backgroundColor: theme.palette.type == "light" ? blue[100] : blue[900],
-    },
-    ".ace_display_only .ace_cursor-layer": {
-      display: "none",
-    },
-    ".ace_display_only .ace_bracket": {
-      display: "none",
-    },
-    ".ace_display_only .ace_indent-guide": {
-      background: "none",
-    },
-    ".ace_mobile-menu": {
-      display: "none !important",
-    },
-    ".ace_fold-widget": {
-      display: "none !important",
-    },
-  },
-  top: {
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(2),
-  },
-  wrapper: {
-    backgroundColor: theme.palette.action.hover,
-    paddingTop: theme.spacing(2),
-    paddingBottom: theme.spacing(2),
-    position: "relative",
-  },
-  skeleton: {
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(2),
-  },
-  editor: {
-    fontFamily: "Source Code Pro, monospace!important",
-    backgroundColor: `rgba(0,0,0,0)!important`,
-    background: "none!important",
-    lineHeight: "1.4em!important",
-  },
-  overlaysWrapperTop: {
-    zIndex: 10,
-    position: "absolute",
-    top: 2,
-    right: 2,
-    display: "flex",
-  },
-  overlaysWrapperBottom: {
-    zIndex: 10,
-    position: "absolute",
-    bottom: 2,
-    right: 2,
-    display: "flex",
-  },
-  iconWrapper: {
-    lineHeight: 1,
-    padding: 0,
-  },
-  save: {
-    color: green[400],
-    fontSize: theme.spacing(2),
-  },
-  run: {
-    color: green[700],
-    fontSize: theme.spacing(4),
-  },
-  close: {
-    fontSize: theme.spacing(2.4),
-    position: "absolute",
-    top: 0,
-    right: 0,
-    zIndex: 20,
-    color: "white",
-  },
-  restore: {
-    color: grey[500],
-    fontSize: theme.spacing(2),
-  },
-  saving: {
-    position: "absolute",
-    top: 2,
-    left: 0,
-    color: green.A700,
-  },
-  running: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    color: green.A400,
-  },
-  tooltipPosition: {
-    margin: 0,
-  },
-  output: {
-    margin: 0,
-    padding: theme.spacing(1),
-    color: grey[50],
-    backgroundColor: grey.A700,
-    border: "none",
-    overflow: "auto",
-  },
-  outputPre: {
-    fontFamily: "Source Code Pro, monospace!important",
-    margin: 0,
-  },
-  terminalSkeleton: {
-    position: "absolute",
-    zIndex: 10,
-    color: "white",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    backgroundColor: "rgba(255, 255, 255, 0.5)",
-  },
-}))
+import { RunButton } from "./RunButton"
+import { RecordButton } from "./RecordButton"
+import { SavingIndicator } from "./SavingIndicator"
+import { RestoreButton } from "./RestoreButton"
+import { CornerButton } from "./CornerButton"
 
 const DISABLED_COMMANDS = [
   {
@@ -171,15 +41,21 @@ const DISABLED_COMMANDS = [
   },
 ] as ICommand[]
 
+export interface AceTrace {
+  audioUrl: string
+  editorTrace: AceRecord[]
+}
+
 export interface AceProps extends IAceEditorProps {
   id?: string
   numbers?: string
   clickOut?: boolean
   displayOnly?: boolean
   initialCursorPosition?: number[]
-  overlays?: ReactNode[]
   noMaceServer?: boolean
   noJeed?: boolean
+  record?: boolean
+  onRecordComplete?: (trace: AceTrace) => void
   snippet?: boolean
   complexity?: boolean
   noCheckstyle?: boolean
@@ -187,6 +63,7 @@ export interface AceProps extends IAceEditorProps {
   checkForSnippet?: boolean
   maxOutputLines?: number
   wrapperStyle?: CSSProperties
+  replaying?: boolean
   children?: ReactNode
 }
 export const Ace: React.FC<AceProps> = ({
@@ -194,9 +71,9 @@ export const Ace: React.FC<AceProps> = ({
   clickOut = true,
   displayOnly,
   initialCursorPosition,
-  overlays = [],
   noMaceServer = false,
   noJeed = false,
+  record = false,
   snippet = false,
   complexity = false,
   noCheckstyle = false,
@@ -206,17 +83,17 @@ export const Ace: React.FC<AceProps> = ({
   mode,
   annotations,
   wrapperStyle = {},
+  replaying = false,
   children,
+  onRecordComplete,
   ...props
 }) => {
-  const maceContext = useMace()
-  const jeedContext = useJeed()
+  // Styling and SSR
+  const muiTheme = useTheme()
+  const classes = aceStyles()
+  const gutterWidth = muiTheme.spacing(3)
 
   const [showPlaceholder, setShowPlaceholder] = useState(true)
-
-  const classes = useStyles()
-  const muiTheme = useTheme()
-  const gutterWidth = muiTheme.spacing(3)
 
   const commands = (props.commands || []).concat(DISABLED_COMMANDS)
   const setOptions = Object.assign({}, props.setOptions)
@@ -238,8 +115,8 @@ export const Ace: React.FC<AceProps> = ({
 
   const numbers = props.numbers !== undefined ? props.numbers === "true" : !displayOnly
   const theme = props.theme || muiTheme.palette.type === "light" ? "chrome" : "tomorrow_night"
-  const haveSSR = id && hasAceSSR(id)
 
+  const haveSSR = id && hasAceSSR(id)
   const SSRContent = (SSR || haveSSR) && id && (
     <div className={`${classes.wrapper} ${displayOnly ? "ace_display_only" : ""}`.trim()}>
       {!displayOnly && (
@@ -268,38 +145,20 @@ export const Ace: React.FC<AceProps> = ({
     </div>
   )
 
+  const editor = useRef<IAceEditor | undefined>()
+
+  // Mace integration
+  const maceContext = useMace()
   const [saving, setSaving] = useState(false)
-  const startSavingTimer = useRef<ReturnType<typeof setTimeout> | undefined>()
+  const [modified, setModified] = useState(false)
 
   const saver = useRef<() => void | undefined>()
+  const startSavingTimer = useRef<ReturnType<typeof setTimeout> | undefined>()
 
-  const aceRef = useRef<IAceEditor | undefined>()
-  const [modified, setModified] = useState(false)
-  const connectMace = maceContext.available && !displayOnly && id !== undefined
+  const connectMace = !replaying && maceContext.available && !displayOnly && id !== undefined
 
-  if (connectMace) {
-    overlays.push(
-      <div className={classes.overlaysWrapperTop} key="top">
-        {modified && (
-          <Tooltip title={"Restore"} placement="left" classes={{ tooltipPlacementLeft: classes.tooltipPosition }}>
-            <div className={classes.iconWrapper} onClick={() => changeValue(aceRef.current, defaultValue)}>
-              <Restore className={classes.restore} />
-            </div>
-          </Tooltip>
-        )}
-        <Tooltip
-          title={saving ? "Saving" : "Saved"}
-          placement="right"
-          classes={{ tooltipPlacementRight: classes.tooltipPosition }}
-        >
-          <div className={classes.iconWrapper}>
-            <CheckCircle className={classes.save} />
-            {saving && <CircularProgress className={classes.saving} disableShrink size={muiTheme.spacing(2)} />}
-          </div>
-        </Tooltip>
-      </div>
-    )
-  }
+  // Jeed integration
+  const jeedContext = useJeed()
 
   const [running, setRunning] = useState(false)
   const [output, setOutput] = useState<string>("")
@@ -307,7 +166,7 @@ export const Ace: React.FC<AceProps> = ({
   const [complexityAnnotations, setComplexityAnnotations] = useState<AceAnnotation[]>([])
 
   const run = useCallback(() => {
-    const contents = aceRef.current?.getValue()
+    const contents = editor.current?.getValue()
     if (!contents || (mode !== "java" && mode !== "kotlin")) {
       return
     }
@@ -369,22 +228,65 @@ export const Ace: React.FC<AceProps> = ({
 
   const connectJeed = jeedContext.available && (mode === "java" || mode === "kotlin") && !noJeed
   if (connectJeed) {
-    overlays.push(
-      <div className={classes.overlaysWrapperBottom} key="bottom">
-        <Tooltip title={"Run"} placement="right" classes={{ tooltipPlacementRight: classes.tooltipPosition }}>
-          <IconButton disabled={running} className={classes.iconWrapper} onClick={run}>
-            <PlayCircleFilled className={classes.run} />
-            {running && <CircularProgress className={classes.running} disableShrink size={muiTheme.spacing(4)} />}
-          </IconButton>
-        </Tooltip>
-      </div>
-    )
-    commands.push({
-      name: "run",
-      bindKey: { win: "Ctrl-Enter", mac: "Ctrl-Enter" },
-      exec: () => {
-        !running && run()
+    commands.push(
+      {
+        name: "run",
+        bindKey: { win: "Ctrl-Enter", mac: "Ctrl-Enter" },
+        exec: () => !running && run(),
       },
+      {
+        name: "close",
+        bindKey: { win: "Esc", mac: "Esc" },
+        exec: () => setShowOutput(false),
+      }
+    )
+  }
+
+  // Race integration
+  const canRecord = useRef(
+    typeof navigator !== "undefined" && navigator.mediaDevices && navigator.mediaDevices.getUserMedia
+  )
+
+  const [recording, setRecording] = useState(false)
+  const audioRecorder = useRef<MediaRecorder | undefined>()
+  const trace = useRef<AceTrace | undefined>(undefined)
+
+  const toggleRecording = useCallback(async () => {
+    if (!editor.current || !canRecord.current) {
+      setRecording(false)
+      return
+    }
+
+    if (!recording) {
+      try {
+        audioRecorder.current = new MediaRecorder(await navigator.mediaDevices.getUserMedia({ audio: true }))
+        const aceRecorder = recorder(editor.current)
+
+        const chunks: Blob[] = []
+        audioRecorder.current.addEventListener("dataavailable", ({ data }) => chunks.push(data))
+        audioRecorder.current.addEventListener("stop", () => {
+          const audioUrl = window.URL.createObjectURL(new Blob(chunks, { type: "audio/ogg; codecs=opus" }))
+          const editorTrace = aceRecorder()
+          trace.current = { audioUrl, editorTrace }
+          onRecordComplete && onRecordComplete(trace.current)
+        })
+        audioRecorder.current.start()
+      } catch (err) {
+        console.error(err)
+        return
+      }
+    } else if (audioRecorder.current) {
+      audioRecorder.current.stop()
+    }
+    setRecording(!recording)
+  }, [setRecording, recording, onRecordComplete])
+
+  const connectRace = id && record && canRecord.current
+  if (connectRace) {
+    commands.push({
+      name: "record",
+      bindKey: { win: "Ctrl-S", mac: "Ctrl-S" },
+      exec: () => !recording && toggleRecording(),
     })
   }
 
@@ -400,7 +302,7 @@ export const Ace: React.FC<AceProps> = ({
           />
         ))}
       {!SSR && (
-        <Suspense fallback={<div></div>}>
+        <Suspense fallback={<div />}>
           <div
             className={`${classes.wrapper} ${displayOnly ? "ace_display_only" : ""}`.trim()}
             style={{ display: showPlaceholder ? "none" : "block" }}
@@ -417,7 +319,20 @@ export const Ace: React.FC<AceProps> = ({
                 }}
               />
             )}
-            {overlays && overlays}
+            {connectMace && (
+              <div className={classes.overlaysWrapperTop} key="top">
+                {modified && editor.current && defaultValue && (
+                  <RestoreButton editor={editor.current} defaultValue={defaultValue} />
+                )}
+                <SavingIndicator saving={saving} />
+              </div>
+            )}
+            {(connectJeed || connectRace) && (
+              <div className={classes.overlaysWrapperBottom}>
+                {connectJeed && <RunButton running={running} run={run} />}
+                {connectRace && <RecordButton recording={recording} toggle={toggleRecording} />}
+              </div>
+            )}
             <AceEditor
               {...props}
               annotations={(annotations || []).concat(complexityAnnotations)}
@@ -429,11 +344,11 @@ export const Ace: React.FC<AceProps> = ({
               onChange={value => {
                 defaultValue && setModified(value !== defaultValue)
               }}
-              onLoad={editor => {
-                aceRef.current = editor
+              onLoad={e => {
+                editor.current = e
 
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const session = editor.session as any
+                const session = e.session as any
                 session.gutterRenderer = {
                   getWidth: function () {
                     return gutterWidth
@@ -444,11 +359,11 @@ export const Ace: React.FC<AceProps> = ({
                 }
 
                 if (!displayOnly && initialCursorPosition) {
-                  editor.moveCursorTo(initialCursorPosition[0], initialCursorPosition[1])
+                  e.moveCursorTo(initialCursorPosition[0], initialCursorPosition[1])
                 }
                 if (connectMace && id) {
                   const save = mace({
-                    editor,
+                    editor: e,
                     context: maceContext,
                     id,
                     onUpdate: () => {
@@ -465,16 +380,14 @@ export const Ace: React.FC<AceProps> = ({
                   saver.current = debounce(1000, () => {
                     setTimeout(() => {
                       startSavingTimer.current && clearTimeout(startSavingTimer.current)
-                      startSavingTimer.current = setTimeout(() => {
-                        setSaving(true)
-                      }, 1000)
+                      startSavingTimer.current = setTimeout(() => setSaving(true), 1000)
                     })
                     save(!noMaceServer)
                   })
                 }
-                editor.setHighlightActiveLine(false)
-                editor.setHighlightGutterLine(false)
-                props.onLoad && props.onLoad(editor)
+                e.setHighlightActiveLine(false)
+                e.setHighlightGutterLine(false)
+                props.onLoad && props.onLoad(e)
                 setShowPlaceholder(false)
               }}
               onFocus={(event, editor: IAceEditor | undefined) => {
@@ -527,7 +440,6 @@ Ace.propTypes = {
   clickOut: PropTypes.bool,
   displayOnly: PropTypes.bool,
   initialCursorPosition: PropTypes.array,
-  overlays: PropTypes.array,
   commands: PropTypes.arrayOf(PropTypes.any.isRequired),
   setOptions: PropTypes.any,
   defaultValue: PropTypes.string,
@@ -552,6 +464,9 @@ Ace.propTypes = {
   annotations: PropTypes.array,
   wrapperStyle: PropTypes.any,
   maxOutputLines: PropTypes.number,
+  record: PropTypes.bool,
+  replaying: PropTypes.bool,
+  onRecordComplete: PropTypes.func,
 }
 Ace.defaultProps = {
   clickOut: true,
@@ -573,15 +488,6 @@ Ace.defaultProps = {
   complexity: false,
   wrapperStyle: {},
   maxOutputLines: 16,
-}
-
-const changeValue = (editor: IAceEditor | undefined, value: string | undefined) => {
-  if (!editor || !value) {
-    return
-  }
-  const position = editor.session.selection.toJSON()
-  editor.setValue(value)
-  editor.session.selection.fromJSON(position)
 }
 
 interface JeedJob {
@@ -608,37 +514,6 @@ const runJeedJob = (job: JeedJob, jeed: JeedContext): Promise<Response> => {
   return jeed.run(request, true)
 }
 
-interface CornerButtonProps extends React.HTMLAttributes<HTMLDivElement> {
-  size: number
-  color: string
-  style?: CSSProperties
-}
-const CornerButton: React.FC<CornerButtonProps> = ({ size, color, style = {}, ...props }) => {
-  return (
-    <div
-      {...props}
-      style={{
-        display: "block",
-        width: size,
-        height: size,
-        borderStyle: "solid",
-        borderWidth: `0 ${size * 2}px ${size * 2}px 0`,
-        borderColor: `transparent ${color} transparent transparent`,
-        position: "absolute",
-        top: 0,
-        right: 0,
-        zIndex: 10,
-        ...style,
-      }}
-    />
-  )
-}
-CornerButton.propTypes = {
-  size: PropTypes.number.isRequired,
-  color: PropTypes.string.isRequired,
-  children: PropTypes.any,
-  style: PropTypes.any,
-}
 interface AceAnnotation {
   row: number
   column: number
