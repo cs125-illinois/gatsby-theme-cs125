@@ -98,6 +98,13 @@ export default makeStyles(theme => ({
     height: "100%",
     backgroundColor: "rgba(255, 255, 255, 0.5)",
   },
+  fakeGutter: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.05)",
+  },
 }))
 
 export const buttonStyles = makeStyles({

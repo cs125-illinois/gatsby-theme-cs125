@@ -1,5 +1,7 @@
-import React, { ReactNode, useState, Suspense, useRef, useCallback } from "react"
+import React, { ReactNode, useState, Suspense, useRef, useCallback, useEffect } from "react"
 import PropTypes from "prop-types"
+
+import useTimeout from "@rooks/use-timeout"
 
 import useTheme from "@material-ui/core/styles/useTheme"
 import aceStyles from "./styles"
@@ -7,18 +9,17 @@ import aceStyles from "./styles"
 import Children from "react-children-utilities"
 
 const AceEditor = React.lazy(() => import("react-ace"))
-import { IAceEditorProps, ICommand } from "react-ace"
+import { ICommand, IAceEditorProps } from "react-ace"
 import { IAceEditor } from "react-ace/lib/types"
 
 import { AceSSR } from "."
 import { hasAceSSR } from "./AceSSR"
 const SSR = typeof window === "undefined"
 
-import { mace, useMace } from "@cs125/mace"
-import { useJeed, JeedContext, Response, FlatSource, Task, TaskArguments, terminalOutput, Request } from "@cs125/jeed"
+import { useMace } from "@cs125/mace"
+import { useJeed, terminalOutput } from "@cs125/jeed"
+import { AceAnnotation, createJeedJob, runJeedJob, getComplexityAnnotations } from "./jeed"
 import { AceRecord, record as recorder } from "@cs125/monace"
-
-import { debounce } from "throttle-debounce"
 
 import Skeleton from "@material-ui/lab/Skeleton"
 import Close from "@material-ui/icons/Close"
@@ -31,6 +32,8 @@ import { RecordButton } from "./RecordButton"
 import { SavingIndicator } from "./SavingIndicator"
 import { RestoreButton } from "./RestoreButton"
 import { CornerButton } from "./CornerButton"
+
+import { Record as RuntypeRecord, Literal, String as RuntypeString, Static, Union } from "runtypes"
 
 const DISABLED_COMMANDS = [
   {
@@ -64,6 +67,8 @@ export interface AceProps extends IAceEditorProps {
   maxOutputLines?: number
   wrapperStyle?: CSSProperties
   replaying?: boolean
+  showOutput?: boolean
+  output?: string
   children?: ReactNode
 }
 export const Ace: React.FC<AceProps> = ({
@@ -146,16 +151,102 @@ export const Ace: React.FC<AceProps> = ({
   )
 
   const editor = useRef<IAceEditor | undefined>()
+  const [editorContentsModified, setEditorContentsModified] = useState(false)
 
   // Mace integration
   const maceContext = useMace()
-  const [saving, setSaving] = useState(false)
-  const [modified, setModified] = useState(false)
-
-  const saver = useRef<() => void | undefined>()
-  const startSavingTimer = useRef<ReturnType<typeof setTimeout> | undefined>()
-
+  const maceGetting = useRef(false)
+  const maceSaving = useRef(false)
+  const [maceLoading, setMaceLoading] = useState(false)
+  const { start: startMaceLoading, clear: clearMaceLoading } = useTimeout(
+    () => setMaceLoading(maceSaving.current || maceGetting.current),
+    1024
+  )
   const connectMace = !replaying && maceContext.available && !displayOnly && id !== undefined
+  useEffect(() => {
+    clearMaceLoading()
+    if (!(id && editor.current)) {
+      return
+    }
+    if (!noMaceServer) {
+      maceGetting.current = true
+      startMaceLoading()
+    }
+    const onGetCompleted = () => {
+      maceGetting.current = false
+      clearMaceLoading()
+    }
+    const onSaveStarted = () => {
+      maceSaving.current = true
+      startMaceLoading()
+    }
+    const onSaveCompleted = () => {
+      maceSaving.current = false
+      clearMaceLoading()
+    }
+    const { stop } = maceContext.register({
+      id,
+      editor: editor.current,
+      options: { useServer: !noMaceServer, onSaveStarted, onSaveCompleted, onGetCompleted },
+    })
+
+    return () => {
+      stop()
+      clearMaceLoading()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, maceContext, noMaceServer])
+
+  // Race integration
+  const canRecord = useRef(
+    typeof navigator !== "undefined" && navigator.mediaDevices && navigator.mediaDevices.getUserMedia
+  )
+
+  const [recording, setRecording] = useState(false)
+  const audioRecorder = useRef<MediaRecorder | undefined>()
+  const addExternalChange = useRef<(change: Record<string, unknown>) => void | undefined>()
+  const trace = useRef<AceTrace | undefined>(undefined)
+
+  const toggleRecording = useCallback(async () => {
+    if (!editor.current || !canRecord.current) {
+      setRecording(false)
+      return
+    }
+
+    if (!recording) {
+      try {
+        audioRecorder.current = new MediaRecorder(await navigator.mediaDevices.getUserMedia({ audio: true }))
+        const { stop, addExternalChange: add } = recorder(editor.current)
+        addExternalChange.current = add
+
+        const chunks: Blob[] = []
+        audioRecorder.current.addEventListener("dataavailable", ({ data }) => chunks.push(data))
+        audioRecorder.current.addEventListener("stop", () => {
+          const audioUrl = window.URL.createObjectURL(new Blob(chunks, { type: "audio/ogg; codecs=opus" }))
+          const editorTrace = stop()
+          trace.current = { audioUrl, editorTrace }
+          onRecordComplete && onRecordComplete(trace.current)
+        })
+        audioRecorder.current.start()
+      } catch (err) {
+        console.error(err)
+        return
+      }
+    } else if (audioRecorder.current) {
+      addExternalChange.current = undefined
+      audioRecorder.current.stop()
+    }
+    setRecording(!recording)
+  }, [setRecording, recording, onRecordComplete])
+
+  const connectRace = id && record && canRecord.current
+  if (connectRace) {
+    commands.push({
+      name: "record",
+      bindKey: { win: "Ctrl-S", mac: "Ctrl-S" },
+      exec: () => !recording && toggleRecording(),
+    })
+  }
 
   // Jeed integration
   const jeedContext = useJeed()
@@ -170,53 +261,24 @@ export const Ace: React.FC<AceProps> = ({
     if (!contents || (mode !== "java" && mode !== "kotlin")) {
       return
     }
-    const tasks: Record<string, boolean> = {}
-    if (mode === "java") {
-      tasks["compile"] = true
-      if (!noCheckstyle) {
-        tasks["checkstyle"] = true
-      }
-      tasks["complexity"] = true
-    } else if (mode == "kotlin") {
-      tasks["kompile"] = true
-    }
-    if (!useContainer) {
-      tasks["execute"] = true
-    } else {
-      tasks["cexecute"] = true
-    }
-    setRunning(true)
-    runJeedJob(
-      {
-        id: id || "jeed",
-        sources: [{ path: snippet ? "" : mode == "java" ? "Main.java" : "Main.kt", contents }],
-        tasks: Object.keys(tasks) as Task[],
-        checkForSnippet,
-      },
-      jeedContext
-    )
+    const job = createJeedJob(contents, {
+      id: id || "jeed",
+      mode,
+      snippet,
+      noCheckstyle,
+      useContainer,
+      checkForSnippet,
+    })
+
+    runJeedJob(job, jeedContext)
       .then(response => {
         console.debug(response)
         const output = terminalOutput(response)
+        addExternalChange.current && addExternalChange.current(AceOutputChange.check({ what: "output", output }))
         setOutput(output !== "" ? output : "(Completed With No Output)")
         setShowOutput(true)
         setRunning(false)
-        if (complexity && response.completed.complexity) {
-          setComplexityAnnotations(
-            response.completed.complexity.results[0].methods
-              .filter(m => m.name !== "")
-              .map(m => {
-                return {
-                  row: m.range.start.line - 1,
-                  column: 0,
-                  type: "info",
-                  text: `${m.name}: complexity ${m.complexity}`,
-                }
-              })
-          )
-        } else {
-          setComplexityAnnotations([])
-        }
+        setComplexityAnnotations(complexity ? getComplexityAnnotations(response) : [])
       })
       .catch(err => {
         console.error(err)
@@ -225,6 +287,11 @@ export const Ace: React.FC<AceProps> = ({
         setRunning(false)
       })
   }, [id, mode, noCheckstyle, useContainer, snippet, jeedContext, complexity, checkForSnippet])
+
+  useEffect(() => {
+    addExternalChange.current &&
+      addExternalChange.current(AceShowOutputChange.check({ what: "showoutput", state: showOutput ? "open" : "close" }))
+  }, [showOutput])
 
   const connectJeed = jeedContext.available && (mode === "java" || mode === "kotlin") && !noJeed
   if (connectJeed) {
@@ -242,53 +309,8 @@ export const Ace: React.FC<AceProps> = ({
     )
   }
 
-  // Race integration
-  const canRecord = useRef(
-    typeof navigator !== "undefined" && navigator.mediaDevices && navigator.mediaDevices.getUserMedia
-  )
-
-  const [recording, setRecording] = useState(false)
-  const audioRecorder = useRef<MediaRecorder | undefined>()
-  const trace = useRef<AceTrace | undefined>(undefined)
-
-  const toggleRecording = useCallback(async () => {
-    if (!editor.current || !canRecord.current) {
-      setRecording(false)
-      return
-    }
-
-    if (!recording) {
-      try {
-        audioRecorder.current = new MediaRecorder(await navigator.mediaDevices.getUserMedia({ audio: true }))
-        const aceRecorder = recorder(editor.current)
-
-        const chunks: Blob[] = []
-        audioRecorder.current.addEventListener("dataavailable", ({ data }) => chunks.push(data))
-        audioRecorder.current.addEventListener("stop", () => {
-          const audioUrl = window.URL.createObjectURL(new Blob(chunks, { type: "audio/ogg; codecs=opus" }))
-          const editorTrace = aceRecorder()
-          trace.current = { audioUrl, editorTrace }
-          onRecordComplete && onRecordComplete(trace.current)
-        })
-        audioRecorder.current.start()
-      } catch (err) {
-        console.error(err)
-        return
-      }
-    } else if (audioRecorder.current) {
-      audioRecorder.current.stop()
-    }
-    setRecording(!recording)
-  }, [setRecording, recording, onRecordComplete])
-
-  const connectRace = id && record && canRecord.current
-  if (connectRace) {
-    commands.push({
-      name: "record",
-      bindKey: { win: "Ctrl-S", mac: "Ctrl-S" },
-      exec: () => !recording && toggleRecording(),
-    })
-  }
+  const actuallyShowOutput = props.showOutput !== undefined ? props.showOutput : showOutput
+  const actualOutput = props.output !== undefined ? props.output : output
 
   return (
     <div className={classes.top} style={wrapperStyle}>
@@ -309,22 +331,18 @@ export const Ace: React.FC<AceProps> = ({
           >
             {!displayOnly && (
               <div
+                className={classes.fakeGutter}
                 style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
                   width: gutterWidth + muiTheme.spacing(1) + 2,
-                  bottom: 0,
-                  backgroundColor: "rgba(0,0,0,0.05)",
                 }}
               />
             )}
             {connectMace && (
               <div className={classes.overlaysWrapperTop} key="top">
-                {modified && editor.current && defaultValue && (
+                {editorContentsModified && editor.current && defaultValue && (
                   <RestoreButton editor={editor.current} defaultValue={defaultValue} />
                 )}
-                <SavingIndicator saving={saving} />
+                <SavingIndicator saving={maceLoading} />
               </div>
             )}
             {(connectJeed || connectRace) && (
@@ -341,9 +359,7 @@ export const Ace: React.FC<AceProps> = ({
                 ace.config.set("basePath", "https://cdn.jsdelivr.net/npm/ace-builds@1.4.11/src-min-noconflict")
                 props.onBeforeLoad && props.onBeforeLoad(ace)
               }}
-              onChange={value => {
-                defaultValue && setModified(value !== defaultValue)
-              }}
+              onChange={value => defaultValue && setEditorContentsModified(value !== defaultValue)}
               onLoad={e => {
                 editor.current = e
 
@@ -361,30 +377,7 @@ export const Ace: React.FC<AceProps> = ({
                 if (!displayOnly && initialCursorPosition) {
                   e.moveCursorTo(initialCursorPosition[0], initialCursorPosition[1])
                 }
-                if (connectMace && id) {
-                  const save = mace({
-                    editor: e,
-                    context: maceContext,
-                    id,
-                    onUpdate: () => {
-                      saver.current && saver.current()
-                    },
-                    onSelectionChange: () => {
-                      saver.current && saver.current()
-                    },
-                    saveCompleted: () => {
-                      startSavingTimer.current && clearTimeout(startSavingTimer.current)
-                      setSaving(false)
-                    },
-                  })
-                  saver.current = debounce(1000, () => {
-                    setTimeout(() => {
-                      startSavingTimer.current && clearTimeout(startSavingTimer.current)
-                      startSavingTimer.current = setTimeout(() => setSaving(true), 1000)
-                    })
-                    save(!noMaceServer)
-                  })
-                }
+
                 e.setHighlightActiveLine(false)
                 e.setHighlightGutterLine(false)
                 props.onLoad && props.onLoad(e)
@@ -415,7 +408,7 @@ export const Ace: React.FC<AceProps> = ({
               theme={theme}
             />
           </div>
-          {showOutput && (
+          {actuallyShowOutput && (
             <div style={{ position: "relative", textAlign: "left" }}>
               <Paper
                 variant="outlined"
@@ -426,7 +419,7 @@ export const Ace: React.FC<AceProps> = ({
                 <CornerButton size={muiTheme.spacing(2)} color={grey.A200} onClick={() => setShowOutput(false)} />
                 <Close className={classes.close} onClick={() => setShowOutput(false)} />
                 {running && <Skeleton variant="rect" className={classes.terminalSkeleton} />}
-                <pre className={classes.outputPre}>{output}</pre>
+                <pre className={classes.outputPre}>{actualOutput}</pre>
               </Paper>
             </div>
           )}
@@ -467,6 +460,8 @@ Ace.propTypes = {
   record: PropTypes.bool,
   replaying: PropTypes.bool,
   onRecordComplete: PropTypes.func,
+  showOutput: PropTypes.bool,
+  output: PropTypes.string,
 }
 Ace.defaultProps = {
   clickOut: true,
@@ -490,33 +485,17 @@ Ace.defaultProps = {
   maxOutputLines: 16,
 }
 
-interface JeedJob {
-  id: string
-  sources: FlatSource[]
-  tasks: Task[]
-  args?: TaskArguments
-  checkForSnippet?: boolean
-}
+export const AceOutputChange = RuntypeRecord({
+  what: Literal("output"),
+  output: RuntypeString,
+})
+export type AceOutputChange = Static<typeof AceOutputChange>
 
-const runJeedJob = (job: JeedJob, jeed: JeedContext): Promise<Response> => {
-  const { id, sources, tasks, args, checkForSnippet } = job
+export const AceShowOutputChange = RuntypeRecord({
+  what: Literal("showoutput"),
+  state: Union(Literal("open"), Literal("close")),
+})
+export type AceShowOutputChange = Static<typeof AceShowOutputChange>
 
-  const usedArgs = Object.assign({}, args, { snippet: { indent: 2 }, checkstyle: { failOnError: true } })
-  const snippet = sources.length === 1 && sources[0].path === ""
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const request = { label: id, tasks, arguments: usedArgs, checkForSnippet } as Request
-  if (snippet) {
-    request.snippet = sources[0].contents
-  } else {
-    request.sources = sources
-  }
-  console.debug(request)
-  return jeed.run(request, true)
-}
-
-interface AceAnnotation {
-  row: number
-  column: number
-  type: string
-  text: string
-}
+export const AceChanges = Union(AceOutputChange, AceShowOutputChange)
+export type AceChanges = Static<typeof AceChanges>

@@ -17,8 +17,8 @@ const useStyles = makeStyles(theme => ({
   },
   saving: {
     position: "absolute",
-    top: 2,
-    left: 0,
+    top: 0,
+    right: 0,
     color: green.A700,
   },
 }))
