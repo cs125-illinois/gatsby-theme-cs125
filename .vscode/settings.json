@@ -7,8 +7,13 @@
     "public/**": true
   },
   "eslint.validate": ["typescriptreact"],
-  "editor.parameterHints": false,
   "emmet.showExpandedAbbreviation": "never",
   "files.trimTrailingWhitespace": true,
-  "editor.autoClosingBrackets": "never"
+  "editor.autoClosingBrackets": "never",
+  "html.autoClosingTags": false,
+  "editor.quickSuggestions": {
+    "other": false,
+    "comments": false,
+    "strings": false
+  }
 }

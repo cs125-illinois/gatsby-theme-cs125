@@ -17,6 +17,9 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "typeRoots": ["node_modules/@types", "./typings"],
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "@cs125/personable-client": ["../personable/pubs/client/"]
+    }
   }
 }
