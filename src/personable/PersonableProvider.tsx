@@ -41,6 +41,8 @@ export const PersonableProvider: React.FC<PersonableProviderProps> = ({ server, 
     setImpersonating(netID)
   }, [])
 
+  console.log(fullResponse?.you)
+
   return (
     <PersonableContext.Provider
       value={

@@ -27,6 +27,11 @@ import { useGoogleEmail } from "@cs125/react-google-login"
 
 export const topBarHeight = (theme: Theme): number => theme.spacing(8)
 
+const gravatarOptions = {
+  r: "pg",
+  d: encodeURI("https://cs125.cs.illinois.edu/img/logos/cs125-with-border-120x120.png"),
+}
+
 const useStyles = makeStyles(theme => ({
   top: {
     position: "fixed",
@@ -86,7 +91,7 @@ export const TopBar: React.FC<TopBarProps> = ({ title, logo }) => {
         {email && email === "challen@illinois.edu" && you && you.email && (
           <>
             <Button disableFocusRipple onClick={() => setImpersonateOpen(true)}>
-              <Avatar src={gravatar.url(you.email)} />
+              <Avatar src={gravatar.url(you.email, gravatarOptions)} />
             </Button>
             <Dialog open={impersonateOpen} onClose={() => setImpersonateOpen(false)}>
               <DialogTitle>Set user to impersonate</DialogTitle>
