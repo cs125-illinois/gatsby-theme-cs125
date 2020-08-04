@@ -86,7 +86,7 @@ if (process.env.THEME_DEVELOPMENT) {
           "@cs125/mace": "../mace",
           "@cs125/jeed": "../jeed/react",
           "@cs125/chitter": "../chitter/",
-          "@cs125/personable-client": "../personable/pubs/client",
+          "@cs125/personable-client": "../personable/pubs/client/",
         },
       },
     },
