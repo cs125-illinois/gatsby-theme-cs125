@@ -67,6 +67,18 @@ Lead.propTypes = {
   children: PropTypes.any.isRequired,
 }
 
+export const LeadP: React.FC = ({ children, ...props }) => {
+  const classes = useStyles()
+  return (
+    <p {...props} className={classes.lead}>
+      {children}
+    </p>
+  )
+}
+LeadP.propTypes = {
+  children: PropTypes.any.isRequired,
+}
+
 export const WrappedGatsbyLink = React.forwardRef(
   (props: Omit<GatsbyLinkProps<unknown>, "ref">, ref: React.Ref<HTMLAnchorElement>) => (
     <GatsbyLink {...props} innerRef={ref} />

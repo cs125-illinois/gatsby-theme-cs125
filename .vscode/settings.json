@@ -15,5 +15,6 @@
     "other": false,
     "comments": false,
     "strings": false
-  }
+  },
+  "typescript.autoClosingTags": false
 }
